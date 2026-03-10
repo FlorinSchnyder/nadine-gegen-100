@@ -139,6 +139,18 @@ function showJoin(){
   };
   const join=async()=>{
     if(!name.trim())return;
+    // Check if game already started
+    const gSnap=await get(ref(db,"game"));
+    const g=gSnap.val();
+    if(g&&g.phase!=="lobby"){
+      render(h("div",{class:"center"},h("div",{style:{maxWidth:"340px",padding:"40px",textAlign:"center"}},
+        h("div",{style:{fontSize:"48px",marginBottom:"8px"}},"🚫"),
+        h("h2",{style:{fontSize:"22px",fontWeight:"800",margin:"0 0 8px"}},"Spiel läuft bereits!"),
+        h("p",{style:{color:"rgba(255,255,255,.4)",fontSize:"13px"}},"Es können keine neuen Spieler:innen mehr beitreten."),
+        h("button",{class:"btn-sm",style:{marginTop:"16px"},onClick:showStart},"← Zurück")
+      )));
+      return;
+    }
     await set(ref(db,`players/${playerId}`),{name:name.trim(),alive:true,answers:{},joinedAt:Date.now()});
     showPlayerGame();
   };
