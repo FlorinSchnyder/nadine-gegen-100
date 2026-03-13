@@ -6,25 +6,27 @@
 <title>Nadine gegen 100</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:'Segoe UI',system-ui,sans-serif;background:linear-gradient(135deg,#0a0a1a,#1a0a2e,#0a1a3e);color:#fff;min-height:100vh;overflow-x:hidden}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:linear-gradient(135deg,#0d0d1a,#1a0e2e,#0e1a2a);color:#fff;min-height:100vh;overflow-x:hidden}
 button{font-family:inherit;-webkit-tap-highlight-color:transparent}
 input{font-family:inherit}
 .center{display:flex;align-items:center;justify-content:center;min-height:100vh;text-align:center}
 .wrap{max-width:700px;margin:0 auto;padding:16px}
-.title-grad{background:linear-gradient(135deg,#f59e0b,#ef4444,#ec4899);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-weight:900}
+.title-grad{background:linear-gradient(135deg,#c084fc,#e879f9,#f0abfc);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-weight:900}
 .btn-big{display:block;width:100%;padding:16px 24px;color:#fff;border:none;border-radius:14px;font-size:17px;font-weight:700;cursor:pointer}
 .btn-action{padding:13px 40px;color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer}
-.btn-sm{padding:7px 16px;background:rgba(255,255,255,.06);color:rgba(255,255,255,.45);border:1px solid rgba(255,255,255,.08);border-radius:8px;cursor:pointer;font-size:11px}
-.card{background:rgba(255,255,255,.05);border-radius:16px;padding:20px;border:1px solid rgba(255,255,255,.08)}
-.label{color:rgba(255,255,255,.35);font-size:8px;text-transform:uppercase;letter-spacing:2px}
+.btn-sm{padding:7px 16px;background:rgba(192,132,252,.08);color:rgba(192,132,252,.6);border:1px solid rgba(192,132,252,.15);border-radius:8px;cursor:pointer;font-size:11px}
+.card{background:rgba(192,132,252,.05);border-radius:16px;padding:20px;border:1px solid rgba(192,132,252,.12)}
+.label{color:rgba(192,132,252,.5);font-size:8px;text-transform:uppercase;letter-spacing:2px}
 .answer-card{border-radius:12px;padding:12px 14px;display:flex;align-items:center;gap:12px;transition:all .4s}
 .color-badge{width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
-.player-badge{background:rgba(255,255,255,.1);padding:5px 12px;border-radius:20px;font-size:13px;font-weight:600;display:inline-block}
+.player-badge{background:rgba(192,132,252,.12);color:#e9d5ff;padding:5px 12px;border-radius:20px;font-size:13px;font-weight:600;display:inline-block;border:1px solid rgba(192,132,252,.2)}
 .dot{width:7px;height:7px;border-radius:50%;display:inline-block}
 .vote-btn{padding:16px 18px;border-radius:14px;display:flex;align-items:center;gap:14px;transition:all .3s;text-align:left;width:100%;cursor:pointer;-webkit-tap-highlight-color:transparent}
-.embed-wrap{margin-bottom:10px;background:rgba(255,255,255,.03);border-radius:14px;padding:10px;border:1px solid rgba(255,255,255,.06)}
+.embed-wrap{margin-bottom:10px;background:rgba(192,132,252,.04);border-radius:14px;padding:10px;border:1px solid rgba(192,132,252,.1)}
 .embed-label{display:flex;align-items:center;gap:8px;margin-bottom:6px}
 .spotify-fallback{display:inline-block;padding:6px 14px;background:rgba(29,185,84,.15);color:#1DB954;border-radius:8px;font-size:11px;font-weight:600;text-decoration:none;border:1px solid rgba(29,185,84,.3);margin-top:4px}
+.hero-img{width:100%;max-width:500px;border-radius:16px;margin-bottom:20px;box-shadow:0 8px 40px rgba(168,85,247,.25)}
+.glow{box-shadow:0 0 30px rgba(168,85,247,.2)}
 </style>
 </head>
 <body>
@@ -44,59 +46,45 @@ const db=getDatabase(initializeApp({
 }));
 
 const PIN="9447";
+const HERO="https://i.imgur.com/gqITbgc.jpeg";
 
-// type: "single"=1 song for question, "per-answer"=song per answer, "none"=no songs, "reveal-song"=show song only after reveal
 const QS=[
   {q:"Wele name besingt de song n'dini?",type:"single",song:"5VbR9u3xUlkm2mcIbcpNCg",
    a:[{t:"Nadine"},{t:"Gertrud"},{t:"Ruedi"}],c:0},
-
   {q:"Zu welem Lied hed d Nadine da grad tanzt?",type:"per-answer",
    a:[{t:"Du bisch dr geilst Kanton vor Wält",s:"78MQX5wfpwFgJ5K9Oq4C6C"},{t:"Hurra die Gams",s:"7gJc9SPshSHnLSqz2d0ETV"},{t:"Fliegerlied",s:"5CsfY2LOy25iRadEtjaqoD"}],c:0},
-
   {q:"Blueme und öppis Wilds – wele Song isch gsuecht?",type:"per-answer",
    a:[{t:"Alperose",s:"5vhVC4fOCJPD86X397a5LN"},{t:"Willst du mit mir Drogen nehmen",s:"3FcqFCeCD6QRtRo6WGLCnC"},{t:"Rosalie",s:"58VDbR5BA09Zs1e5mh1eSE"}],c:1},
-
   {q:"Was hat Nadine zu diesem Song gemacht?",type:"single",song:"3FcqFCeCD6QRtRo6WGLCnC",
    a:[{t:"Drogen genommen"},{t:"Mit Naomi Party gemacht"},{t:"Eingewärmt in Volley"}],c:1},
-
   {q:"Auf welches Lied hat Nadine an allen Konzerten am meisten gewartet?",type:"per-answer",
    a:[{t:"Holocene",s:"35KiiILklye1JRRctaLUb4"},{t:"In case I fall for you",s:"2qz7KoWTLGuWuIfwqZmk4y"},{t:"Sofa King",s:"25HgUJf69zb3K7TJw7LGCQ"}],c:0},
-
   {q:"Was hed d Nadine gmacht, wo sie da Lied ufe und abe glost hed?",type:"single",song:"6vmbgm6ogRW7y502goY69c",
    a:[{t:"Ferie"},{t:"Breakup Träne vergosse"},{t:"Atelier hänge"}],c:0},
-
   {q:"Wo isch d Nadine ide Ferie gsih, wo sie da Lied ufe und abe glost hed?",type:"single",song:"2R62w7tfRIvpyUsasJUeIR",
    a:[{t:"Griechenland"},{t:"Neuseeland"},{t:"Portugal"}],c:2},
-
   {q:"Was isch passiert wo sie das Lied glost het?",type:"single",song:"0HZhYMZOcUzZKSFwPOti6m",
    a:[{t:"Schlechti Note becho"},{t:"Über de Volleytrainer abghated"},{t:"Strit mit de Eltere gha"}],c:1},
-
   {q:"Weles Lied het d Nadine glost wo sie en Breakup gha het?",type:"per-answer",
    a:[{t:"50 ways to leave your lover",s:"6Qb7gtV6Q4MnUjSbkFcopl"},{t:"I miss you",s:"1AdYZ6X00nXmO613Y7GJOl"},{t:"Save your tears",s:"5QO79kh1waicV47BqGRL3g"}],c:2},
-
   {q:"Bi was füremene Song isch d Nadine Mitkomponistin?",type:"none",
    a:[{t:"Wanderhymne"},{t:"Liebeslied"},{t:"Argoviahit"}],c:0},
-
   {q:"Weli Liebi besingt d Nadine am liebste?",type:"reveal-song",revealSong:"61rputyFcUsC1ldct1OKRr",
    a:[{t:"Modern Love"},{t:"Old Love"},{t:"New Love"}],c:0},
-
   {q:"Ohne wellches Lied hat Nadine in der WG am Wochenende das Haus nicht verlassen?",type:"per-answer",
    a:[{t:"Let the dogs out",s:"1H5tvpoApNDxvxDexoaAUo"},{t:"Ella Ella",s:"3XM3TD08DSAzl84yasWP1x"},{t:"I'm sexy and I know it",s:"70Vdd1gx5tn84jkAU31ASv"}],c:1},
-
   {q:"Nadine ist/war Teil von welcher Fangruppe?\nIn welcher Phase hat die Vorbereitung fürs Konzert nicht nur Songs sondern auch Obenohnebilder beinhaltet?",type:"none",
    a:[{t:"Beliebers"},{t:"Swifties"},{t:"Rihanna Navy"}],c:0},
-
   {q:"Wele/Weli Künstler:in wett d Nadine am liebste grad jetzt id Schwiz hole?",type:"none",
    a:[{t:"Adele"},{t:"Edwin Rosen"},{t:"Sharon van Etten"}],c:2},
-
   {q:"Weles Lied lost d Nadine wenn sie ihre Tag chli wott uufheitere?",type:"per-answer",
    a:[{t:"Guten Morgen (Nana Mouskouri)",s:"5lpXFKgD6PeT6endUq5EX9"},{t:"Im Fluss (Buntspecht)",s:"3v2uRpFb6UftbDn9KmyzJ2"},{t:"APT",s:"5vNRhkKd0yEAg8suGBpjeY"}],c:1},
 ];
 
 const CL=[
   {n:"Rot",bg:"#dc2626",lt:"rgba(220,38,38,.12)",bd:"#ef4444",em:"🔴",hx:"#ef4444"},
-  {n:"Blau",bg:"#2563eb",lt:"rgba(37,99,235,.12)",bd:"#3b82f6",em:"🔵",hx:"#3b82f6"},
-  {n:"Grün",bg:"#16a34a",lt:"rgba(22,163,74,.12)",bd:"#22c55e",em:"🟢",hx:"#22c55e"},
+  {n:"Blau",bg:"#7c3aed",lt:"rgba(124,58,237,.12)",bd:"#a78bfa",em:"🟣",hx:"#a78bfa"},
+  {n:"Grün",bg:"#06b6d4",lt:"rgba(6,182,212,.12)",bd:"#22d3ee",em:"🔵",hx:"#22d3ee"},
 ];
 
 const app=document.getElementById("app");
@@ -107,23 +95,20 @@ function li(p,cb){const u=onValue(ref(db,p),s=>cb(s.val()));unsubs.push(u);}
 function h(tag,at,...ch){const el=document.createElement(tag);if(at)Object.entries(at).forEach(([k,v])=>{if(k==="style"&&typeof v==="object")Object.assign(el.style,v);else if(k.startsWith("on"))el.addEventListener(k.slice(2).toLowerCase(),v);else el.setAttribute(k,v)});ch.flat().forEach(c=>{if(c!=null)el.append(typeof c==="string"||typeof c==="number"?document.createTextNode(c):c)});return el;}
 function R(el){app.innerHTML="";app.appendChild(el);}
 function emb(id){return h("iframe",{src:`https://open.spotify.com/embed/track/${id}?utm_source=generator&theme=0`,width:"100%",height:"152",frameBorder:"0",allow:"autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture",loading:"lazy",style:{borderRadius:"12px",border:"none",maxWidth:"100%"}})}
-function slink(id,lb){return h("a",{href:`https://open.spotify.com/track/${id}`,target:"_blank",class:"spotify-fallback"},"🔗 In Spotify öffnen: "+lb)}
-function stat(l,v,c){return h("div",{style:{textAlign:"center"}},h("div",{class:"label"},l),h("div",{style:{color:c,fontSize:"18px",fontWeight:"800"}},v))}
+function slink(id,lb){return h("a",{href:`https://open.spotify.com/track/${id}`,target:"_blank",class:"spotify-fallback"},"🔗 In Spotify öffnen")}
+function stat(l,v,c){return h("div",{style:{textAlign:"center"}},h("div",{class:"label"},l),h("div",{style:{color:c,fontSize:"18px",fontWeight:"800"}},v));}
 
 // ─── START ───
 function showStart(){
   cl();let sp=false,pe=false;
   const d=()=>{
-    R(h("div",{class:"center"},h("div",{style:{maxWidth:"400px",padding:"32px"}},
-      h("div",{style:{fontSize:"48px",marginBottom:"4px"}},"🎂"),
-      h("div",{style:{fontSize:"13px",color:"rgba(255,255,255,.4)",fontWeight:"600",letterSpacing:"3px",textTransform:"uppercase",marginBottom:"4px"}},"Happy 30th Birthday"),
-      h("h1",{class:"title-grad",style:{fontSize:"42px",margin:"0 0 2px"}},"NADINE"),
-      h("h2",{style:{fontSize:"26px",margin:"0 0 28px",fontWeight:"800"}},"gegen ",h("span",{style:{color:"#f59e0b"}},"100")),
-      h("button",{class:"btn-big",style:{background:"linear-gradient(135deg,#6366f1,#8b5cf6)",marginBottom:"10px"},onClick:()=>{role="player";showJoin()}},"📱 Mitspielen!"),
-      sp?h("div",{style:{display:"flex",gap:"8px",justifyContent:"center",alignItems:"center",marginTop:"32px"}},
-        Object.assign(h("input",{type:"password",placeholder:"PIN",maxLength:"6",style:{width:"100px",padding:"8px 12px",background:"rgba(255,255,255,.08)",color:"#fff",border:`1px solid ${pe?"#ef4444":"rgba(255,255,255,.15)"}`,borderRadius:"8px",fontSize:"16px",textAlign:"center",outline:"none"}}),{onkeydown:e=>{if(e.key==="Enter")ck(e.target.value)}}),
+    R(h("div",{class:"center"},h("div",{style:{maxWidth:"500px",padding:"24px"}},
+      h("img",{src:HERO,class:"hero-img",alt:"Nadine gegen 100",onerror:"this.style.display='none'"}),
+      h("button",{class:"btn-big",style:{background:"linear-gradient(135deg,#7c3aed,#a855f7)",marginBottom:"10px"},onClick:()=>{role="player";showJoin()}},"📱 Mitspielen!"),
+      sp?h("div",{style:{display:"flex",gap:"8px",justifyContent:"center",alignItems:"center",marginTop:"24px"}},
+        Object.assign(h("input",{type:"password",placeholder:"PIN",maxLength:"6",style:{width:"100px",padding:"8px 12px",background:"rgba(192,132,252,.1)",color:"#fff",border:`1px solid ${pe?"#ef4444":"rgba(192,132,252,.25)"}`,borderRadius:"8px",fontSize:"16px",textAlign:"center",outline:"none"}}),{onkeydown:e=>{if(e.key==="Enter")ck(e.target.value)}}),
         h("button",{class:"btn-sm",onClick:e=>{ck(e.target.parentElement.querySelector("input").value)}},"→")
-      ):h("button",{style:{background:"none",border:"none",color:"rgba(255,255,255,.2)",fontSize:"11px",cursor:"pointer",padding:"4px",marginTop:"32px"},onClick:()=>{sp=true;d()}},"Moderator"),
+      ):h("button",{style:{background:"none",border:"none",color:"rgba(192,132,252,.25)",fontSize:"11px",cursor:"pointer",padding:"4px",marginTop:"24px"},onClick:()=>{sp=true;d()}},"Moderator"),
       pe?h("div",{style:{color:"#ef4444",fontSize:"12px",marginTop:"6px"}},"Falscher PIN"):null
     )));
   };
@@ -136,11 +121,10 @@ function showJoin(){
   cl();let nm="";
   const d=()=>{
     R(h("div",{class:"center"},h("div",{style:{maxWidth:"360px",padding:"32px"}},
-      h("div",{style:{fontSize:"44px",marginBottom:"4px"}},"🎂"),
-      h("h2",{style:{fontSize:"22px",margin:"0 0 2px",fontWeight:"800"}},"Nadine gegen 100"),
-      h("p",{style:{color:"rgba(255,255,255,.5)",marginBottom:"20px",fontSize:"13px"}},"Gib deinen Namen ein!"),
-      Object.assign(h("input",{placeholder:"Dein Name",maxLength:"20",style:{width:"100%",padding:"14px 16px",background:"rgba(255,255,255,.1)",color:"#fff",border:"1px solid rgba(255,255,255,.2)",borderRadius:"12px",fontSize:"18px",textAlign:"center",fontWeight:"600",outline:"none",marginBottom:"10px"}}),{oninput:e=>{nm=e.target.value},onkeydown:e=>{if(e.key==="Enter")jo()}}),
-      h("button",{class:"btn-big",style:{background:"linear-gradient(135deg,#6366f1,#8b5cf6)"},onClick:jo},"Mitspielen! 🎉"),
+      h("img",{src:HERO,class:"hero-img",style:{maxWidth:"280px"},alt:"Nadine gegen 100",onerror:"this.style.display='none'"}),
+      h("p",{style:{color:"rgba(192,132,252,.6)",marginBottom:"16px",fontSize:"13px"}},"Gib deinen Namen ein!"),
+      Object.assign(h("input",{placeholder:"Dein Name",maxLength:"20",style:{width:"100%",padding:"14px 16px",background:"rgba(192,132,252,.08)",color:"#fff",border:"1px solid rgba(192,132,252,.2)",borderRadius:"12px",fontSize:"18px",textAlign:"center",fontWeight:"600",outline:"none",marginBottom:"10px"}}),{oninput:e=>{nm=e.target.value},onkeydown:e=>{if(e.key==="Enter")jo()}}),
+      h("button",{class:"btn-big",style:{background:"linear-gradient(135deg,#7c3aed,#a855f7)"},onClick:jo},"Mitspielen! 🎉"),
       h("button",{class:"btn-sm",style:{marginTop:"16px"},onClick:showStart},"← Zurück")
     )));
   };
@@ -151,7 +135,7 @@ function showJoin(){
       R(h("div",{class:"center"},h("div",{style:{maxWidth:"340px",padding:"40px",textAlign:"center"}},
         h("div",{style:{fontSize:"48px",marginBottom:"8px"}},"🚫"),
         h("h2",{style:{fontSize:"22px",fontWeight:"800",margin:"0 0 8px"}},"Spiel läuft bereits!"),
-        h("p",{style:{color:"rgba(255,255,255,.4)",fontSize:"13px"}},"Es können keine neuen Spieler:innen mehr beitreten."),
+        h("p",{style:{color:"rgba(192,132,252,.5)",fontSize:"13px"}},"Es können keine neuen Spieler:innen mehr beitreten."),
         h("button",{class:"btn-sm",style:{marginTop:"16px"},onClick:showStart},"← Zurück")
       )));return;
     }
@@ -165,41 +149,41 @@ function showJoin(){
 function showPlayer(){
   cl();let gm=null,my=null,sel=null,sub=false,lq=-1;
   const d=()=>{
-    if(!gm)return R(h("div",{class:"center"},h("div",{style:{color:"rgba(255,255,255,.4)",fontSize:"14px",padding:"40px"}},"Verbinde...")));
+    if(!gm)return R(h("div",{class:"center"},h("div",{style:{color:"rgba(192,132,252,.5)",fontSize:"14px",padding:"40px"}},"Verbinde...")));
     const al=my?.alive!==false;
     if(!al)return R(h("div",{class:"center"},h("div",{style:{maxWidth:"340px",padding:"40px",textAlign:"center"}},
       h("div",{style:{fontSize:"56px",marginBottom:"8px"}},"😵"),
       h("h2",{style:{color:"#ef4444",fontSize:"26px",fontWeight:"800",margin:"0 0 6px"}},"Du bist raus!"),
-      h("p",{style:{color:"rgba(255,255,255,.4)",fontSize:"13px"}},"Falsche Antwort bei Frage "+((my?.eliminatedAt||0)+1)+"."),
-      h("p",{style:{color:"rgba(255,255,255,.3)",fontSize:"13px",marginTop:"4px"}},"Viel Spass beim Zuschauen! 🍿")
+      h("p",{style:{color:"rgba(192,132,252,.5)",fontSize:"13px"}},"Falsche Antwort bei Frage "+((my?.eliminatedAt||0)+1)+"."),
+      h("p",{style:{color:"rgba(192,132,252,.35)",fontSize:"13px",marginTop:"4px"}},"Viel Spass beim Zuschauen! 🍿")
     )));
     if(gm.phase==="lobby")return R(h("div",{class:"center"},h("div",{style:{padding:"40px",textAlign:"center"}},
       h("div",{style:{fontSize:"44px",marginBottom:"4px"}},"✅"),
       h("h2",{style:{fontSize:"20px",fontWeight:"700",margin:"0 0 4px"}},"Hey "+(my?.name||"")+"!"),
-      h("p",{style:{color:"rgba(255,255,255,.4)",fontSize:"13px"}},"Warte bis das Spiel startet...")
+      h("p",{style:{color:"rgba(192,132,252,.5)",fontSize:"13px"}},"Warte bis das Spiel startet...")
     )));
     const qi=gm.currentQ||0,q=QS[qi];
     const cv=gm.phase==="vote"&&al&&!sub,sr=gm.phase==="reveal";
     const ma=my?.answers?.[qi],wc=sr&&q.c>=0&&ma===q.c,ww=sr&&q.c>=0&&ma!==undefined&&ma!==q.c;
     const qt=q.q.split("\n");
     const els=[h("div",{style:{textAlign:"center",marginBottom:"10px"}},
-      h("span",{style:{color:"rgba(255,255,255,.35)",fontSize:"11px"}},"Frage "+(qi+1)+" / "+QS.length),
+      h("span",{style:{color:"rgba(192,132,252,.45)",fontSize:"11px"}},"Frage "+(qi+1)+" / "+QS.length),
       ...qt.map(t=>h("h3",{style:{fontSize:"17px",fontWeight:"700",margin:"6px 0 0",lineHeight:"1.3"}},t)))];
-    if(gm.phase==="question")els.push(h("div",{style:{textAlign:"center",padding:"28px"}},h("div",{style:{fontSize:"36px"}},"🎵"),h("p",{style:{color:"rgba(255,255,255,.4)",fontSize:"13px",marginTop:"8px"}},"Hör gut zu...")));
-    if(gm.phase==="songs")els.push(h("div",{style:{textAlign:"center",padding:"28px"}},h("div",{style:{fontSize:"36px"}},"🎧"),h("p",{style:{color:"rgba(255,255,255,.4)",fontSize:"13px",marginTop:"8px"}},"Songs werden abgespielt...")));
+    if(gm.phase==="question")els.push(h("div",{style:{textAlign:"center",padding:"28px"}},h("div",{style:{fontSize:"36px"}},"🎵"),h("p",{style:{color:"rgba(192,132,252,.45)",fontSize:"13px",marginTop:"8px"}},"Hör gut zu...")));
+    if(gm.phase==="songs")els.push(h("div",{style:{textAlign:"center",padding:"28px"}},h("div",{style:{fontSize:"36px"}},"🎧"),h("p",{style:{color:"rgba(192,132,252,.45)",fontSize:"13px",marginTop:"8px"}},"Songs werden abgespielt...")));
     if(gm.phase==="vote"||sr){
       const bs=q.a.map((a,i)=>{
         const c=CL[i],im=sel===i,ic=sr&&q.c===i,iw=sr&&q.c!==i&&q.c>=0;
-        return h("button",{class:"vote-btn",style:{border:`3px solid ${ic?c.bd:im?c.bg:"rgba(255,255,255,.08)"}`,background:ic?c.lt:im?c.bg+"22":"rgba(255,255,255,.04)",opacity:iw&&!im?.25:1,cursor:cv?"pointer":"default"},onClick:()=>{if(cv)dv(i,qi)}},
+        return h("button",{class:"vote-btn",style:{border:`3px solid ${ic?c.bd:im?c.bg:"rgba(192,132,252,.1)"}`,background:ic?c.lt:im?c.bg+"22":"rgba(192,132,252,.04)",opacity:iw&&!im?.25:1,cursor:cv?"pointer":"default"},onClick:()=>{if(cv)dv(i,qi)}},
           h("div",{style:{width:"50px",height:"50px",borderRadius:"12px",display:"flex",alignItems:"center",justifyContent:"center",background:im||ic?c.bg:c.bg+"33",fontSize:"24px",flexShrink:"0",boxShadow:im&&!sr?`0 0 16px ${c.bg}44`:"none"}},ic?"✓":im&&ww?"✗":c.em),
           h("div",null,h("div",{style:{color:"#fff",fontSize:"16px",fontWeight:"700"}},a.t),im&&!sr?h("div",{style:{color:c.hx,fontSize:"11px",marginTop:"2px",fontWeight:"600"}},"Deine Wahl ✓"):null));
       });
       els.push(h("div",{style:{display:"flex",flexDirection:"column",gap:"9px",marginTop:"8px"}},...bs));
       if(sub&&gm.phase==="vote")els.push(h("div",{style:{textAlign:"center",marginTop:"6px"}},h("div",{style:{color:CL[sel]?.hx,fontSize:"13px",fontWeight:"600"}},CL[sel]?.em+" "+CL[sel]?.n+" gewählt – warte auf Auflösung...")));
-      if(!sub&&gm.phase==="vote")els.push(h("div",{style:{textAlign:"center",marginTop:"6px"}},h("div",{style:{color:"#f59e0b",fontSize:"14px",fontWeight:"700"}},"⬆️ Wähle deine Farbe!")));
-      if(wc)els.push(h("div",{style:{textAlign:"center",marginTop:"8px"}},h("div",{style:{fontSize:"36px"}},"🎉"),h("div",{style:{color:"#22c55e",fontSize:"18px",fontWeight:"800",marginTop:"4px"}},"Richtig! Du bist weiter!")));
+      if(!sub&&gm.phase==="vote")els.push(h("div",{style:{textAlign:"center",marginTop:"6px"}},h("div",{style:{color:"#e879f9",fontSize:"14px",fontWeight:"700"}},"⬆️ Wähle deine Farbe!")));
+      if(wc)els.push(h("div",{style:{textAlign:"center",marginTop:"8px"}},h("div",{style:{fontSize:"36px"}},"🎉"),h("div",{style:{color:"#22d3ee",fontSize:"18px",fontWeight:"800",marginTop:"4px"}},"Richtig! Du bist weiter!")));
       if(ww)els.push(h("div",{style:{textAlign:"center",marginTop:"8px"}},h("div",{style:{fontSize:"36px"}},"😢"),h("div",{style:{color:"#ef4444",fontSize:"18px",fontWeight:"800",marginTop:"4px"}},"Leider falsch...")));
-      if(sr&&ma===undefined)els.push(h("div",{style:{textAlign:"center",marginTop:"8px",color:"rgba(255,255,255,.35)",fontSize:"13px"}},"Du hast nicht abgestimmt"));
+      if(sr&&ma===undefined)els.push(h("div",{style:{textAlign:"center",marginTop:"8px",color:"rgba(192,132,252,.4)",fontSize:"13px"}},"Du hast nicht abgestimmt"));
     }
     R(h("div",{style:{minHeight:"100vh",padding:"16px 14px"}},h("div",{style:{maxWidth:"400px",margin:"0 auto"}},...els)));
   };
@@ -216,14 +200,12 @@ function showLobby(){
   const d=()=>{
     const ns=Object.values(ps||{}),tt=ns.length;
     R(h("div",{class:"center"},h("div",{style:{maxWidth:"600px",padding:"24px",textAlign:"center"}},
-      h("div",{style:{fontSize:"13px",color:"rgba(255,255,255,.4)",letterSpacing:"3px",textTransform:"uppercase",marginBottom:"4px"}},"🎂 Moderator-Ansicht"),
-      h("h1",{class:"title-grad",style:{fontSize:"36px",margin:"0 0 4px"}},"NADINE gegen "+(tt||"?")),
-      h("p",{style:{color:"rgba(255,255,255,.5)",marginBottom:"20px",fontSize:"13px"}},"Spieler:innen joinen über den geteilten Link..."),
+      h("img",{src:HERO,class:"hero-img",style:{maxWidth:"400px"},alt:"Nadine gegen 100",onerror:"this.style.display='none'"}),
       h("div",{class:"card",style:{marginBottom:"20px",minHeight:"80px"}},
-        h("div",{style:{color:"rgba(255,255,255,.4)",fontSize:"12px",marginBottom:"10px"}},tt+" Spieler:innen dabei"),
-        h("div",{style:{display:"flex",flexWrap:"wrap",gap:"6px",justifyContent:"center"}},...ns.map(p=>h("span",{class:"player-badge"},p.name)),tt===0?h("span",{style:{color:"rgba(255,255,255,.25)",fontSize:"13px"}},"Warte auf Spieler:innen..."):null)
+        h("div",{style:{color:"rgba(192,132,252,.5)",fontSize:"12px",marginBottom:"10px"}},tt+" Spieler:innen dabei"),
+        h("div",{style:{display:"flex",flexWrap:"wrap",gap:"6px",justifyContent:"center"}},...ns.map(p=>h("span",{class:"player-badge"},p.name)),tt===0?h("span",{style:{color:"rgba(192,132,252,.3)",fontSize:"13px"}},"Warte auf Spieler:innen..."):null)
       ),
-      h("button",{class:"btn-big",style:{background:tt>0?"linear-gradient(135deg,#f59e0b,#ef4444)":"rgba(255,255,255,.1)",color:tt>0?"#fff":"rgba(255,255,255,.3)",cursor:tt>0?"pointer":"not-allowed"},onClick:()=>{if(tt>0)showAdmin(0,"question")}},"🎬 SPIEL STARTEN"),
+      h("button",{class:"btn-big",style:{background:tt>0?"linear-gradient(135deg,#7c3aed,#a855f7)":"rgba(192,132,252,.1)",color:tt>0?"#fff":"rgba(192,132,252,.3)",cursor:tt>0?"pointer":"not-allowed"},onClick:()=>{if(tt>0)showAdmin(0,"question")}},"🎬 SPIEL STARTEN"),
       h("div",{style:{display:"flex",gap:"8px",justifyContent:"center",marginTop:"12px"}},h("button",{class:"btn-sm",onClick:showLobby},"🔄 Reset"),h("button",{class:"btn-sm",onClick:showStart},"🚪 Zurück"))
     )));
   };
@@ -240,74 +222,51 @@ function showAdmin(qi,ph){
     const vt=[0,0,0];Object.values(ps||{}).forEach(p=>{if(p.alive&&p.answers?.[cq]!==undefined)vt[p.answers[cq]]++});
     const tv=vt.reduce((a,b)=>a+b,0),il=cq===QS.length-1,qt=q.q.split("\n");
 
-    // Songs section
     const se=[];
     if(phase==="songs"||phase==="vote"){
-      if(q.type==="single"&&q.song){
-        se.push(h("div",{class:"embed-wrap"},emb(q.song),slink(q.song,"Song abspielen")));
-      }else if(q.type==="per-answer"){
-        q.a.forEach((a,i)=>{if(a.s)se.push(h("div",{class:"embed-wrap",style:{borderColor:CL[i].bg+"33"}},
-          h("div",{class:"embed-label"},h("span",{style:{fontSize:"18px"}},CL[i].em),h("span",{style:{color:"rgba(255,255,255,.6)",fontSize:"13px",fontWeight:"600"}},a.t)),
-          emb(a.s),slink(a.s,a.t)))});
-      }
-      // reveal-song: no songs in these phases
+      if(q.type==="single"&&q.song)se.push(h("div",{class:"embed-wrap"},emb(q.song),slink(q.song)));
+      else if(q.type==="per-answer"){q.a.forEach((a,i)=>{if(a.s)se.push(h("div",{class:"embed-wrap",style:{borderColor:CL[i].bg+"33"}},h("div",{class:"embed-label"},h("span",{style:{fontSize:"18px"}},CL[i].em),h("span",{style:{color:"rgba(255,255,255,.6)",fontSize:"13px",fontWeight:"600"}},a.t)),emb(a.s),slink(a.s)))});}
     }
-    // Show reveal song after answer is revealed
     if(phase==="reveal"&&q.type==="reveal-song"&&q.revealSong){
-      se.push(h("div",{class:"embed-wrap",style:{borderColor:"#f59e0b33"}},
-        h("div",{class:"embed-label"},h("span",{style:{fontSize:"18px"}},"🎵"),h("span",{style:{color:"#f59e0b",fontSize:"13px",fontWeight:"600"}},"Und so tönt's:")),
-        emb(q.revealSong),slink(q.revealSong,"Song abspielen")));
+      se.push(h("div",{class:"embed-wrap",style:{borderColor:"rgba(168,85,247,.3)"}},h("div",{class:"embed-label"},h("span",{style:{fontSize:"18px"}},"🎵"),h("span",{style:{color:"#c084fc",fontSize:"13px",fontWeight:"600"}},"Und so tönt's:")),emb(q.revealSong),slink(q.revealSong)));
     }
 
-    // Answer cards
     const ac2=q.a.map((a,i)=>{
       const c=CL[i],ic=phase==="reveal"&&q.c===i,iw=phase==="reveal"&&q.c!==i&&q.c>=0;
       const pc=tv>0?Math.round(vt[i]/tv*100):0;
-      return h("div",{class:"answer-card",style:{background:ic?c.lt:"rgba(255,255,255,.04)",border:`3px solid ${ic?c.bd:iw?"rgba(255,255,255,.03)":c.bg+"44"}`,opacity:iw?.25:1,transform:ic?"scale(1.02)":"scale(1)"}},
+      return h("div",{class:"answer-card",style:{background:ic?c.lt:"rgba(192,132,252,.03)",border:`3px solid ${ic?c.bd:iw?"rgba(255,255,255,.03)":c.bg+"33"}`,opacity:iw?.25:1,transform:ic?"scale(1.02)":"scale(1)"}},
         h("div",{class:"color-badge",style:{background:ic?c.bg:c.bg+"33",boxShadow:ic?`0 0 20px ${c.bg}44`:"none"}},ic?"✓":c.em),
         h("div",{style:{flex:"1",minWidth:"0"}},h("div",{style:{color:iw?"rgba(255,255,255,.3)":"#fff",fontSize:"15px",fontWeight:"700"}},a.t)),
-        (phase==="vote"||phase==="reveal")?h("div",{style:{textAlign:"right",flexShrink:"0",minWidth:"40px"}},h("div",{style:{color:c.hx,fontSize:"17px",fontWeight:"800"}},vt[i]),h("div",{style:{color:"rgba(255,255,255,.25)",fontSize:"9px"}},pc+"%")):null);
+        (phase==="vote"||phase==="reveal")?h("div",{style:{textAlign:"right",flexShrink:"0",minWidth:"40px"}},h("div",{style:{color:c.hx,fontSize:"17px",fontWeight:"800"}},vt[i]),h("div",{style:{color:"rgba(192,132,252,.35)",fontSize:"9px"}},pc+"%")):null);
     });
 
-    // Controls
     const ct=[];
     if(phase==="question"){
-      if(q.type==="none"||q.type==="reveal-song"){
-        // Skip songs phase, go straight to vote
-        ct.push(h("button",{class:"btn-action",style:{background:"linear-gradient(135deg,#f59e0b,#f97316)"},onClick:()=>{sy("vote");d()}},"🃏 ABSTIMMEN!"));
-      }else{
-        ct.push(h("button",{class:"btn-action",style:{background:"linear-gradient(135deg,#6366f1,#8b5cf6)"},onClick:()=>{sy("songs");d()}},"🎵 Songs abspielen"));
-      }
+      if(q.type==="none"||q.type==="reveal-song")ct.push(h("button",{class:"btn-action",style:{background:"linear-gradient(135deg,#a855f7,#e879f9)"},onClick:()=>{sy("vote");d()}},"🃏 ABSTIMMEN!"));
+      else ct.push(h("button",{class:"btn-action",style:{background:"linear-gradient(135deg,#7c3aed,#a855f7)"},onClick:()=>{sy("songs");d()}},"🎵 Songs abspielen"));
     }
-    if(phase==="songs")ct.push(h("button",{class:"btn-action",style:{background:"linear-gradient(135deg,#f59e0b,#f97316)"},onClick:()=>{sy("vote");d()}},"🃏 ABSTIMMEN!"));
+    if(phase==="songs")ct.push(h("button",{class:"btn-action",style:{background:"linear-gradient(135deg,#a855f7,#e879f9)"},onClick:()=>{sy("vote");d()}},"🃏 ABSTIMMEN!"));
     if(phase==="vote")ct.push(h("div",{style:{textAlign:"center"}},
-      h("div",{style:{color:"rgba(255,255,255,.35)",fontSize:"12px",marginBottom:"6px"}},tv+" / "+ac.length+" Spieler:innen haben gewählt"),
-      h("button",{class:"btn-action",style:{background:"linear-gradient(135deg,#ef4444,#ec4899)",boxShadow:"0 0 24px rgba(239,68,68,.25)"},onClick:rv},"🎯 ANTWORT AUFDECKEN")));
+      h("div",{style:{color:"rgba(192,132,252,.45)",fontSize:"12px",marginBottom:"6px"}},tv+" / "+ac.length+" Spieler:innen haben gewählt"),
+      h("button",{class:"btn-action",style:{background:"linear-gradient(135deg,#dc2626,#e879f9)",boxShadow:"0 0 24px rgba(168,85,247,.3)"},onClick:rv},"🎯 ANTWORT AUFDECKEN")));
     if(phase==="reveal"){
       const rv2=[];
       if(q.c>=0)rv2.push(h("div",{style:{fontSize:"15px",color:CL[q.c].hx,fontWeight:"700",marginBottom:"6px"}},"✅ "+CL[q.c].em+" "+CL[q.c].n+" – "+q.a[q.c].t));
-      else rv2.push(h("div",{style:{fontSize:"13px",color:"#f59e0b",marginBottom:"6px"}},"⚠️ Richtige Antwort nicht definiert"));
-      if(!il)rv2.push(h("button",{class:"btn-action",style:{background:"linear-gradient(135deg,#6366f1,#8b5cf6)"},onClick:()=>{cq++;sy("question",cq);d()}},"Nächste Frage →"));
-      else rv2.push(h("div",null,h("div",{style:{fontSize:"32px",marginBottom:"4px"}},"🎉🎂🥳"),h("div",{style:{color:"#f59e0b",fontSize:"18px",fontWeight:"800"}},ac.length>0?ac.length+" Spieler:innen haben überlebt!":"Nadine hat gewonnen!"),h("div",{style:{color:"rgba(255,255,255,.4)",fontSize:"13px",marginTop:"2px"}},"Happy Birthday Nadine! 🎵")));
+      else rv2.push(h("div",{style:{fontSize:"13px",color:"#e879f9",marginBottom:"6px"}},"⚠️ Richtige Antwort nicht definiert"));
+      if(!il)rv2.push(h("button",{class:"btn-action",style:{background:"linear-gradient(135deg,#7c3aed,#a855f7)"},onClick:()=>{cq++;sy("question",cq);d()}},"Nächste Frage →"));
+      else rv2.push(h("div",null,h("div",{style:{fontSize:"32px",marginBottom:"4px"}},"🎉🥳🎶"),h("div",{style:{color:"#c084fc",fontSize:"18px",fontWeight:"800"}},ac.length>0?ac.length+" Spieler:innen haben überlebt!":"Nadine hat gewonnen!")));
       ct.push(h("div",{style:{textAlign:"center"}},...rv2));
     }
 
     R(h("div",{style:{minHeight:"100vh",padding:"12px 16px"}},h("div",{class:"wrap"},
-      // Header
       h("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"10px"}},
-        h("div",{style:{display:"flex",alignItems:"center",gap:"14px"}},stat("Frage",(cq+1)+"/"+QS.length,"#fff"),h("div",{style:{width:"1px",height:"24px",background:"rgba(255,255,255,.1)"}}),stat("Aktiv",ac.length,"#f59e0b"),h("div",{style:{width:"1px",height:"24px",background:"rgba(255,255,255,.1)"}}),stat("Raus",el,"#ef4444")),
-        h("span",{style:{fontSize:"10px",color:"rgba(255,255,255,.25)",letterSpacing:"2px",textTransform:"uppercase"}},"Moderator")),
-      // Dots
-      h("div",{style:{display:"flex",gap:"3px",justifyContent:"center",marginBottom:"14px",flexWrap:"wrap"}},...QS.map((_,i)=>h("div",{class:"dot",style:{background:i===cq?"#f59e0b":i<cq?"rgba(245,158,11,.3)":"rgba(255,255,255,.08)"}}))),
-      // Question
+        h("div",{style:{display:"flex",alignItems:"center",gap:"14px"}},stat("Frage",(cq+1)+"/"+QS.length,"#c084fc"),h("div",{style:{width:"1px",height:"24px",background:"rgba(192,132,252,.15)"}}),stat("Aktiv",ac.length,"#22d3ee"),h("div",{style:{width:"1px",height:"24px",background:"rgba(192,132,252,.15)"}}),stat("Raus",el,"#ef4444")),
+        h("span",{style:{fontSize:"10px",color:"rgba(192,132,252,.3)",letterSpacing:"2px",textTransform:"uppercase"}},"Moderator")),
+      h("div",{style:{display:"flex",gap:"3px",justifyContent:"center",marginBottom:"14px",flexWrap:"wrap"}},...QS.map((_,i)=>h("div",{class:"dot",style:{background:i===cq?"#a855f7":i<cq?"rgba(168,85,247,.3)":"rgba(192,132,252,.1)"}}))),
       h("div",{class:"card",style:{padding:"18px 22px",marginBottom:"14px",textAlign:"center"}},...qt.map(t=>h("h2",{style:{fontSize:"21px",fontWeight:"700",lineHeight:"1.4",marginBottom:"4px"}},t))),
-      // Songs
       ...se,
-      // Answers
       h("div",{style:{display:"flex",flexDirection:"column",gap:"7px",marginBottom:"14px"}},...ac2),
-      // Controls
       h("div",{style:{display:"flex",flexDirection:"column",alignItems:"center",gap:"8px"}},...ct),
-      // Nav
       h("div",{style:{display:"flex",justifyContent:"space-between",marginTop:"14px"}},
         h("button",{class:"btn-sm",style:{opacity:cq===0?.3:.7},onClick:()=>{if(cq>0){cq--;sy("question",cq);d()}}},"← Zurück"),
         h("button",{class:"btn-sm",onClick:showLobby},"🏠 Lobby"),
