@@ -21,12 +21,10 @@ input{font-family:inherit}
 .color-badge{width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
 .player-badge{background:rgba(255,255,255,.1);padding:5px 12px;border-radius:20px;font-size:13px;font-weight:600;display:inline-block}
 .dot{width:7px;height:7px;border-radius:50%;display:inline-block}
-.spotify-row{display:flex;align-items:center;gap:8px;margin-top:6px}
-.spotify-btn{width:36px;height:36px;border-radius:50%;border:none;background:rgba(29,185,84,.2);color:#1DB954;font-size:14px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:all .2s}
-.spotify-btn:hover{background:rgba(29,185,84,.4)}
-.spotify-btn.playing{background:#1DB954;color:#fff}
 .vote-btn{padding:16px 18px;border-radius:14px;display:flex;align-items:center;gap:14px;transition:all .3s;text-align:left;width:100%;cursor:pointer;-webkit-tap-highlight-color:transparent}
-@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.03)}}
+.embed-wrap{margin-bottom:10px;background:rgba(255,255,255,.03);border-radius:14px;padding:10px;border:1px solid rgba(255,255,255,.06)}
+.embed-label{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.spotify-fallback{display:inline-block;padding:6px 14px;background:rgba(29,185,84,.15);color:#1DB954;border-radius:8px;font-size:11px;font-weight:600;text-decoration:none;border:1px solid rgba(29,185,84,.3);margin-top:4px}
 </style>
 </head>
 <body>
@@ -35,7 +33,7 @@ input{font-family:inherit}
 import{initializeApp}from"https://www.gstatic.com/firebasejs/11.4.0/firebase-app.js";
 import{getDatabase,ref,set,get,onValue,update,remove}from"https://www.gstatic.com/firebasejs/11.4.0/firebase-database.js";
 
-const fbApp=initializeApp({
+const db=getDatabase(initializeApp({
   apiKey:"AIzaSyCvmoOH_hCh2zzoYU0oU-9gSOjANGKbxDY",
   authDomain:"nadine-gegen-100.firebaseapp.com",
   databaseURL:"https://nadine-gegen-100-default-rtdb.europe-west1.firebasedatabase.app",
@@ -43,343 +41,291 @@ const fbApp=initializeApp({
   storageBucket:"nadine-gegen-100.firebasestorage.app",
   messagingSenderId:"679037108782",
   appId:"1:679037108782:web:ea27e093d4771d0cc395bf"
-});
-const db=getDatabase(fbApp);
-const ADMIN_PIN="9447";
+}));
 
-// type: "single" = 1 song for whole question, "per-answer" = 1 song per answer, "none" = no songs
-const QUESTIONS=[
-  {question:"Wele name besingt de song n'dini?",type:"single",song:"5VbR9u3xUlkm2mcIbcpNCg",
-    answers:[{text:"Nadine"},{text:"Gertrud"},{text:"Ruedi"}],correct:0},
+const PIN="9447";
 
-  {question:"Zu welem Lied hed d Nadine da grad tanzt?",type:"per-answer",
-    answers:[{text:"Du bisch dr geilst Kanton vor Wält",spotifyId:"78MQX5wfpwFgJ5K9Oq4C6C"},{text:"Hurra die Gams",spotifyId:"7gJc9SPshSHnLSqz2d0ETV"},{text:"Fliegerlied",spotifyId:"5CsfY2LOy25iRadEtjaqoD"}],correct:0},
+// type: "single"=1 song for question, "per-answer"=song per answer, "none"=no songs, "reveal-song"=show song only after reveal
+const QS=[
+  {q:"Wele name besingt de song n'dini?",type:"single",song:"5VbR9u3xUlkm2mcIbcpNCg",
+   a:[{t:"Nadine"},{t:"Gertrud"},{t:"Ruedi"}],c:0},
 
-  {question:"Blueme und öppis Wilds – wele Song isch gsuecht?",type:"per-answer",
-    answers:[{text:"Alperose",spotifyId:"5vhVC4fOCJPD86X397a5LN"},{text:"Willst du mit mir Drogen nehmen",spotifyId:"3FcqFCeCD6QRtRo6WGLCnC"},{text:"Rosalie",spotifyId:"58VDbR5BA09Zs1e5mh1eSE"}],correct:1},
+  {q:"Zu welem Lied hed d Nadine da grad tanzt?",type:"per-answer",
+   a:[{t:"Du bisch dr geilst Kanton vor Wält",s:"78MQX5wfpwFgJ5K9Oq4C6C"},{t:"Hurra die Gams",s:"7gJc9SPshSHnLSqz2d0ETV"},{t:"Fliegerlied",s:"5CsfY2LOy25iRadEtjaqoD"}],c:0},
 
-  {question:"Was hat Nadine zu diesem Song gemacht?",type:"single",song:"3FcqFCeCD6QRtRo6WGLCnC",
-    answers:[{text:"Drogen genommen"},{text:"Mit Naomi Party gemacht"},{text:"Eingewärmt in Volley"}],correct:1},
+  {q:"Blueme und öppis Wilds – wele Song isch gsuecht?",type:"per-answer",
+   a:[{t:"Alperose",s:"5vhVC4fOCJPD86X397a5LN"},{t:"Willst du mit mir Drogen nehmen",s:"3FcqFCeCD6QRtRo6WGLCnC"},{t:"Rosalie",s:"58VDbR5BA09Zs1e5mh1eSE"}],c:1},
 
-  {question:"Auf welches Lied hat Nadine an allen Konzerten am meisten gewartet?",type:"per-answer",
-    answers:[{text:"Holocene",spotifyId:"35KiiILklye1JRRctaLUb4"},{text:"In case I fall for you",spotifyId:"2qz7KoWTLGuWuIfwqZmk4y"},{text:"Sofa King",spotifyId:"25HgUJf69zb3K7TJw7LGCQ"}],correct:0},
+  {q:"Was hat Nadine zu diesem Song gemacht?",type:"single",song:"3FcqFCeCD6QRtRo6WGLCnC",
+   a:[{t:"Drogen genommen"},{t:"Mit Naomi Party gemacht"},{t:"Eingewärmt in Volley"}],c:1},
 
-  {question:"Was hed d Nadine gmacht, wo sie da Lied ufe und abe glost hed?",type:"single",song:"6vmbgm6ogRW7y502goY69c",
-    answers:[{text:"Ferie"},{text:"Breakup Träne vergosse"},{text:"Atelier hänge"}],correct:0},
+  {q:"Auf welches Lied hat Nadine an allen Konzerten am meisten gewartet?",type:"per-answer",
+   a:[{t:"Holocene",s:"35KiiILklye1JRRctaLUb4"},{t:"In case I fall for you",s:"2qz7KoWTLGuWuIfwqZmk4y"},{t:"Sofa King",s:"25HgUJf69zb3K7TJw7LGCQ"}],c:0},
 
-  {question:"Wo isch d Nadine ide Ferie gsih, wo sie da Lied ufe und abe glost hed?",type:"single",song:"2R62w7tfRIvpyUsasJUeIR",
-    answers:[{text:"Griechenland"},{text:"Neuseeland"},{text:"Portugal"}],correct:2},
+  {q:"Was hed d Nadine gmacht, wo sie da Lied ufe und abe glost hed?",type:"single",song:"6vmbgm6ogRW7y502goY69c",
+   a:[{t:"Ferie"},{t:"Breakup Träne vergosse"},{t:"Atelier hänge"}],c:0},
 
-  {question:"Was isch passiert wo sie das Lied glost het?",type:"single",song:"0HZhYMZOcUzZKSFwPOti6m",
-    answers:[{text:"Schlechti Note becho"},{text:"Über de Volleytrainer abghated"},{text:"Strit mit de Eltere gha"}],correct:1},
+  {q:"Wo isch d Nadine ide Ferie gsih, wo sie da Lied ufe und abe glost hed?",type:"single",song:"2R62w7tfRIvpyUsasJUeIR",
+   a:[{t:"Griechenland"},{t:"Neuseeland"},{t:"Portugal"}],c:2},
 
-  {question:"Weles Lied het d Nadine glost wo sie en Breakup gha het?",type:"per-answer",
-    answers:[{text:"50 ways to leave your lover",spotifyId:"6Qb7gtV6Q4MnUjSbkFcopl"},{text:"I miss you",spotifyId:"1AdYZ6X00nXmO613Y7GJOl"},{text:"Save your tears",spotifyId:"5QO79kh1waicV47BqGRL3g"}],correct:2},
+  {q:"Was isch passiert wo sie das Lied glost het?",type:"single",song:"0HZhYMZOcUzZKSFwPOti6m",
+   a:[{t:"Schlechti Note becho"},{t:"Über de Volleytrainer abghated"},{t:"Strit mit de Eltere gha"}],c:1},
 
-  {question:"Bi was füremene Song isch d Nadine Mitkomponistin?",type:"none",
-    answers:[{text:"Wanderhymne"},{text:"Liebeslied"},{text:"Argoviahit"}],correct:0},
+  {q:"Weles Lied het d Nadine glost wo sie en Breakup gha het?",type:"per-answer",
+   a:[{t:"50 ways to leave your lover",s:"6Qb7gtV6Q4MnUjSbkFcopl"},{t:"I miss you",s:"1AdYZ6X00nXmO613Y7GJOl"},{t:"Save your tears",s:"5QO79kh1waicV47BqGRL3g"}],c:2},
 
-  {question:"Weli Liebi besingt d Nadine am liebste?",type:"none",
-    answers:[{text:"Modern Love"},{text:"Old Love"},{text:"New Love"}],correct:0},
+  {q:"Bi was füremene Song isch d Nadine Mitkomponistin?",type:"none",
+   a:[{t:"Wanderhymne"},{t:"Liebeslied"},{t:"Argoviahit"}],c:0},
 
-  {question:"Ohne wellches Lied hat Nadine in der WG am Wochenende das Haus nicht verlassen?",type:"none",
-    answers:[{text:"Ella Ella"},{text:"Let the dogs out"},{text:"I'm sexy and I know it"}],correct:0},
+  {q:"Weli Liebi besingt d Nadine am liebste?",type:"reveal-song",revealSong:"61rputyFcUsC1ldct1OKRr",
+   a:[{t:"Modern Love"},{t:"Old Love"},{t:"New Love"}],c:0},
 
-  {question:"Nadine ist/war Teil von welcher Fangruppe?\nIn welcher Phase hat die Vorbereitung fürs Konzert nicht nur Songs sondern auch Obenohnebilder beinhaltet?",type:"none",
-    answers:[{text:"Beliebers"},{text:"Swifties"},{text:"Rihanna Navy"}],correct:0},
+  {q:"Ohne wellches Lied hat Nadine in der WG am Wochenende das Haus nicht verlassen?",type:"per-answer",
+   a:[{t:"Let the dogs out",s:"1H5tvpoApNDxvxDexoaAUo"},{t:"Ella Ella",s:"3XM3TD08DSAzl84yasWP1x"},{t:"I'm sexy and I know it",s:"70Vdd1gx5tn84jkAU31ASv"}],c:1},
 
-  {question:"Wele/Weli Künstler:in wett d Nadine am liebste grad jetzt id Schwiz hole?",type:"none",
-    answers:[{text:"Adele"},{text:"Edwin Rosen"},{text:"Sharon van Etten"}],correct:2},
+  {q:"Nadine ist/war Teil von welcher Fangruppe?\nIn welcher Phase hat die Vorbereitung fürs Konzert nicht nur Songs sondern auch Obenohnebilder beinhaltet?",type:"none",
+   a:[{t:"Beliebers"},{t:"Swifties"},{t:"Rihanna Navy"}],c:0},
 
-  {question:"Weles Lied lost d Nadine wenn sie ihre Tag chli wott uufheitere?",type:"none",
-    answers:[{text:"Guten Morgen (Nana Mouskouri)"},{text:"Im Fluss (Buntspecht)"},{text:"APT"}],correct:1},
+  {q:"Wele/Weli Künstler:in wett d Nadine am liebste grad jetzt id Schwiz hole?",type:"none",
+   a:[{t:"Adele"},{t:"Edwin Rosen"},{t:"Sharon van Etten"}],c:2},
+
+  {q:"Weles Lied lost d Nadine wenn sie ihre Tag chli wott uufheitere?",type:"per-answer",
+   a:[{t:"Guten Morgen (Nana Mouskouri)",s:"5lpXFKgD6PeT6endUq5EX9"},{t:"Im Fluss (Buntspecht)",s:"3v2uRpFb6UftbDn9KmyzJ2"},{t:"APT",s:"5vNRhkKd0yEAg8suGBpjeY"}],c:1},
 ];
 
-const COLORS=[
-  {name:"Rot",bg:"#dc2626",light:"rgba(220,38,38,.12)",border:"#ef4444",emoji:"🔴",hex:"#ef4444"},
-  {name:"Blau",bg:"#2563eb",light:"rgba(37,99,235,.12)",border:"#3b82f6",emoji:"🔵",hex:"#3b82f6"},
-  {name:"Grün",bg:"#16a34a",light:"rgba(22,163,74,.12)",border:"#22c55e",emoji:"🟢",hex:"#22c55e"},
+const CL=[
+  {n:"Rot",bg:"#dc2626",lt:"rgba(220,38,38,.12)",bd:"#ef4444",em:"🔴",hx:"#ef4444"},
+  {n:"Blau",bg:"#2563eb",lt:"rgba(37,99,235,.12)",bd:"#3b82f6",em:"🔵",hx:"#3b82f6"},
+  {n:"Grün",bg:"#16a34a",lt:"rgba(22,163,74,.12)",bd:"#22c55e",em:"🟢",hx:"#22c55e"},
 ];
 
 const app=document.getElementById("app");
-let role=null,playerId="p_"+Math.random().toString(36).slice(2,8);
+let role=null,pid="p_"+Math.random().toString(36).slice(2,8);
 let unsubs=[];
-let currentIframe=null;
+function cl(){unsubs.forEach(u=>u());unsubs=[];}
+function li(p,cb){const u=onValue(ref(db,p),s=>cb(s.val()));unsubs.push(u);}
+function h(tag,at,...ch){const el=document.createElement(tag);if(at)Object.entries(at).forEach(([k,v])=>{if(k==="style"&&typeof v==="object")Object.assign(el.style,v);else if(k.startsWith("on"))el.addEventListener(k.slice(2).toLowerCase(),v);else el.setAttribute(k,v)});ch.flat().forEach(c=>{if(c!=null)el.append(typeof c==="string"||typeof c==="number"?document.createTextNode(c):c)});return el;}
+function R(el){app.innerHTML="";app.appendChild(el);}
+function emb(id){return h("iframe",{src:`https://open.spotify.com/embed/track/${id}?utm_source=generator&theme=0`,width:"100%",height:"152",frameBorder:"0",allow:"autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture",loading:"lazy",style:{borderRadius:"12px",border:"none",maxWidth:"100%"}})}
+function slink(id,lb){return h("a",{href:`https://open.spotify.com/track/${id}`,target:"_blank",class:"spotify-fallback"},"🔗 In Spotify öffnen: "+lb)}
+function stat(l,v,c){return h("div",{style:{textAlign:"center"}},h("div",{class:"label"},l),h("div",{style:{color:c,fontSize:"18px",fontWeight:"800"}},v))}
 
-function clearListeners(){unsubs.forEach(u=>u());unsubs=[];}
-function listen(path,cb){const u=onValue(ref(db,path),s=>cb(s.val()));unsubs.push(u);}
-
-function h(tag,attrs,...ch){
-  const el=document.createElement(tag);
-  if(attrs)Object.entries(attrs).forEach(([k,v])=>{
-    if(k==="style"&&typeof v==="object")Object.assign(el.style,v);
-    else if(k.startsWith("on"))el.addEventListener(k.slice(2).toLowerCase(),v);
-    else if(k==="innerHTML")el.innerHTML=v;
-    else el.setAttribute(k,v);
-  });
-  ch.flat().forEach(c=>{if(c!=null)el.append(typeof c==="string"||typeof c==="number"?document.createTextNode(c):c)});
-  return el;
-}
-function render(el){app.innerHTML="";app.appendChild(el);}
-
-function spotifyEmbed(trackId){
-  return h("iframe",{
-    src:`https://open.spotify.com/embed/track/${trackId}?utm_source=generator&theme=0`,
-    width:"100%",height:"152",
-    frameBorder:"0",allow:"autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture",
-    loading:"lazy",allowfullscreen:"true",
-    style:{borderRadius:"12px",border:"none",maxWidth:"100%"}
-  });
-}
-function spotifyLink(trackId,label){
-  return h("a",{href:`https://open.spotify.com/track/${trackId}`,target:"_blank",
-    style:{display:"inline-block",padding:"8px 16px",background:"rgba(29,185,84,.15)",color:"#1DB954",borderRadius:"8px",fontSize:"12px",fontWeight:"600",textDecoration:"none",border:"1px solid rgba(29,185,84,.3)",marginTop:"4px"}
-  },"🔗 In Spotify öffnen: "+label);
-}
-
-function stopSpotify(){
-  if(currentIframe){try{currentIframe.remove();}catch(e){}currentIframe=null;}
-}
-
-// ─── START SCREEN ───
+// ─── START ───
 function showStart(){
-  clearListeners();stopSpotify();
-  let showPin=false,pinErr=false;
-  const draw=()=>{
-    render(h("div",{class:"center"},
-      h("div",{style:{maxWidth:"400px",padding:"32px"}},
-        h("div",{style:{fontSize:"48px",marginBottom:"4px"}},"🎂"),
-        h("div",{style:{fontSize:"13px",color:"rgba(255,255,255,.4)",fontWeight:"600",letterSpacing:"3px",textTransform:"uppercase",marginBottom:"4px"}},"Happy 30th Birthday"),
-        h("h1",{class:"title-grad",style:{fontSize:"42px",margin:"0 0 2px"}},"NADINE"),
-        h("h2",{style:{fontSize:"26px",margin:"0 0 28px",fontWeight:"800"}},"gegen ",h("span",{style:{color:"#f59e0b"}},"100")),
-        h("button",{class:"btn-big",style:{background:"linear-gradient(135deg,#6366f1,#8b5cf6)",marginBottom:"10px"},onClick:()=>{role="player";showJoin();}},"📱 Mitspielen!"),
-        showPin?h("div",{style:{display:"flex",gap:"8px",justifyContent:"center",alignItems:"center",marginTop:"32px"}},
-          Object.assign(h("input",{type:"password",placeholder:"PIN",maxLength:"6",style:{width:"100px",padding:"8px 12px",background:"rgba(255,255,255,.08)",color:"#fff",border:`1px solid ${pinErr?"#ef4444":"rgba(255,255,255,.15)"}`,borderRadius:"8px",fontSize:"16px",textAlign:"center",outline:"none"}}),{onkeydown:e=>{if(e.key==="Enter")checkPin(e.target.value)}}),
-          h("button",{class:"btn-sm",onClick:e=>{checkPin(e.target.parentElement.querySelector("input").value)}},"→")
-        ):h("button",{style:{background:"none",border:"none",color:"rgba(255,255,255,.2)",fontSize:"11px",cursor:"pointer",padding:"4px",marginTop:"32px"},onClick:()=>{showPin=true;draw();}},"Moderator"),
-        pinErr?h("div",{style:{color:"#ef4444",fontSize:"12px",marginTop:"6px"}},"Falscher PIN"):null
-      )
-    ));
+  cl();let sp=false,pe=false;
+  const d=()=>{
+    R(h("div",{class:"center"},h("div",{style:{maxWidth:"400px",padding:"32px"}},
+      h("div",{style:{fontSize:"48px",marginBottom:"4px"}},"🎂"),
+      h("div",{style:{fontSize:"13px",color:"rgba(255,255,255,.4)",fontWeight:"600",letterSpacing:"3px",textTransform:"uppercase",marginBottom:"4px"}},"Happy 30th Birthday"),
+      h("h1",{class:"title-grad",style:{fontSize:"42px",margin:"0 0 2px"}},"NADINE"),
+      h("h2",{style:{fontSize:"26px",margin:"0 0 28px",fontWeight:"800"}},"gegen ",h("span",{style:{color:"#f59e0b"}},"100")),
+      h("button",{class:"btn-big",style:{background:"linear-gradient(135deg,#6366f1,#8b5cf6)",marginBottom:"10px"},onClick:()=>{role="player";showJoin()}},"📱 Mitspielen!"),
+      sp?h("div",{style:{display:"flex",gap:"8px",justifyContent:"center",alignItems:"center",marginTop:"32px"}},
+        Object.assign(h("input",{type:"password",placeholder:"PIN",maxLength:"6",style:{width:"100px",padding:"8px 12px",background:"rgba(255,255,255,.08)",color:"#fff",border:`1px solid ${pe?"#ef4444":"rgba(255,255,255,.15)"}`,borderRadius:"8px",fontSize:"16px",textAlign:"center",outline:"none"}}),{onkeydown:e=>{if(e.key==="Enter")ck(e.target.value)}}),
+        h("button",{class:"btn-sm",onClick:e=>{ck(e.target.parentElement.querySelector("input").value)}},"→")
+      ):h("button",{style:{background:"none",border:"none",color:"rgba(255,255,255,.2)",fontSize:"11px",cursor:"pointer",padding:"4px",marginTop:"32px"},onClick:()=>{sp=true;d()}},"Moderator"),
+      pe?h("div",{style:{color:"#ef4444",fontSize:"12px",marginTop:"6px"}},"Falscher PIN"):null
+    )));
   };
-  const checkPin=v=>{if(v===ADMIN_PIN){role="admin";showLobby();}else{pinErr=true;draw();setTimeout(()=>{pinErr=false;draw();},1500);}};
-  draw();
+  const ck=v=>{if(v===PIN){role="admin";showLobby();}else{pe=true;d();setTimeout(()=>{pe=false;d()},1500)}};
+  d();
 }
 
-// ─── PLAYER: JOIN ───
+// ─── JOIN ───
 function showJoin(){
-  clearListeners();stopSpotify();
-  let name="";
-  const draw=()=>{
-    render(h("div",{class:"center"},
-      h("div",{style:{maxWidth:"360px",padding:"32px"}},
-        h("div",{style:{fontSize:"44px",marginBottom:"4px"}},"🎂"),
-        h("h2",{style:{fontSize:"22px",margin:"0 0 2px",fontWeight:"800"}},"Nadine gegen 100"),
-        h("p",{style:{color:"rgba(255,255,255,.5)",marginBottom:"20px",fontSize:"13px"}},"Gib deinen Namen ein!"),
-        Object.assign(h("input",{placeholder:"Dein Name",maxLength:"20",style:{width:"100%",padding:"14px 16px",background:"rgba(255,255,255,.1)",color:"#fff",border:"1px solid rgba(255,255,255,.2)",borderRadius:"12px",fontSize:"18px",textAlign:"center",fontWeight:"600",outline:"none",marginBottom:"10px"}}),{oninput:e=>{name=e.target.value},onkeydown:e=>{if(e.key==="Enter")join()}}),
-        h("button",{class:"btn-big",style:{background:"linear-gradient(135deg,#6366f1,#8b5cf6)"},onClick:join},"Mitspielen! 🎉"),
-        h("button",{class:"btn-sm",style:{marginTop:"16px"},onClick:showStart},"← Zurück")
-      )
-    ));
+  cl();let nm="";
+  const d=()=>{
+    R(h("div",{class:"center"},h("div",{style:{maxWidth:"360px",padding:"32px"}},
+      h("div",{style:{fontSize:"44px",marginBottom:"4px"}},"🎂"),
+      h("h2",{style:{fontSize:"22px",margin:"0 0 2px",fontWeight:"800"}},"Nadine gegen 100"),
+      h("p",{style:{color:"rgba(255,255,255,.5)",marginBottom:"20px",fontSize:"13px"}},"Gib deinen Namen ein!"),
+      Object.assign(h("input",{placeholder:"Dein Name",maxLength:"20",style:{width:"100%",padding:"14px 16px",background:"rgba(255,255,255,.1)",color:"#fff",border:"1px solid rgba(255,255,255,.2)",borderRadius:"12px",fontSize:"18px",textAlign:"center",fontWeight:"600",outline:"none",marginBottom:"10px"}}),{oninput:e=>{nm=e.target.value},onkeydown:e=>{if(e.key==="Enter")jo()}}),
+      h("button",{class:"btn-big",style:{background:"linear-gradient(135deg,#6366f1,#8b5cf6)"},onClick:jo},"Mitspielen! 🎉"),
+      h("button",{class:"btn-sm",style:{marginTop:"16px"},onClick:showStart},"← Zurück")
+    )));
   };
-  const join=async()=>{
-    if(!name.trim())return;
-    const gSnap=await get(ref(db,"game"));
-    const g=gSnap.val();
+  const jo=async()=>{
+    if(!nm.trim())return;
+    const gs=await get(ref(db,"game"));const g=gs.val();
     if(g&&g.phase!=="lobby"){
-      render(h("div",{class:"center"},h("div",{style:{maxWidth:"340px",padding:"40px",textAlign:"center"}},
+      R(h("div",{class:"center"},h("div",{style:{maxWidth:"340px",padding:"40px",textAlign:"center"}},
         h("div",{style:{fontSize:"48px",marginBottom:"8px"}},"🚫"),
         h("h2",{style:{fontSize:"22px",fontWeight:"800",margin:"0 0 8px"}},"Spiel läuft bereits!"),
         h("p",{style:{color:"rgba(255,255,255,.4)",fontSize:"13px"}},"Es können keine neuen Spieler:innen mehr beitreten."),
         h("button",{class:"btn-sm",style:{marginTop:"16px"},onClick:showStart},"← Zurück")
-      )));
-      return;
+      )));return;
     }
-    await set(ref(db,`players/${playerId}`),{name:name.trim(),alive:true,answers:{},joinedAt:Date.now()});
-    showPlayerGame();
+    await set(ref(db,`players/${pid}`),{name:nm.trim(),alive:true,answers:{},joinedAt:Date.now()});
+    showPlayer();
   };
-  draw();
+  d();
 }
 
-// ─── PLAYER: GAME ───
-function showPlayerGame(){
-  clearListeners();stopSpotify();
-  let game=null,myData=null,selected=null,submitted=false,lastQ=-1;
-
-  const draw=()=>{
-    if(!game)return render(h("div",{class:"center"},h("div",{style:{color:"rgba(255,255,255,.4)",fontSize:"14px",padding:"40px"}},"Verbinde...")));
-    const alive=myData?.alive!==false;
-    if(!alive){
-      return render(h("div",{class:"center"},h("div",{style:{maxWidth:"340px",padding:"40px",textAlign:"center"}},
-        h("div",{style:{fontSize:"56px",marginBottom:"8px"}},"😵"),
-        h("h2",{style:{color:"#ef4444",fontSize:"26px",fontWeight:"800",margin:"0 0 6px"}},"Du bist raus!"),
-        h("p",{style:{color:"rgba(255,255,255,.4)",fontSize:"13px"}},"Falsche Antwort bei Frage "+((myData?.eliminatedAt||0)+1)+"."),
-        h("p",{style:{color:"rgba(255,255,255,.3)",fontSize:"13px",marginTop:"4px"}},"Viel Spass beim Zuschauen! 🍿")
-      )));
-    }
-    if(game.phase==="lobby"){
-      return render(h("div",{class:"center"},h("div",{style:{padding:"40px",textAlign:"center"}},
-        h("div",{style:{fontSize:"44px",marginBottom:"4px"}},"✅"),
-        h("h2",{style:{fontSize:"20px",fontWeight:"700",margin:"0 0 4px"}},"Hey "+(myData?.name||"")+"!"),
-        h("p",{style:{color:"rgba(255,255,255,.4)",fontSize:"13px"}},"Warte bis das Spiel startet...")
-      )));
-    }
-    const qi=game.currentQ||0;
-    const q=QUESTIONS[qi];
-    const canVote=game.phase==="vote"&&alive&&!submitted;
-    const showResult=game.phase==="reveal";
-    const myAns=myData?.answers?.[qi];
-    const wasCorrect=showResult&&q.correct>=0&&myAns===q.correct;
-    const wasWrong=showResult&&q.correct>=0&&myAns!==undefined&&myAns!==q.correct;
-
-    const qText=q.question.split("\n");
-    const els=[
-      h("div",{style:{textAlign:"center",marginBottom:"10px"}},
-        h("span",{style:{color:"rgba(255,255,255,.35)",fontSize:"11px"}},"Frage "+(qi+1)+" / "+QUESTIONS.length),
-        ...qText.map(t=>h("h3",{style:{fontSize:"17px",fontWeight:"700",margin:"6px 0 0",lineHeight:"1.3"}},t))
-      )
-    ];
-
-    if(game.phase==="question")els.push(h("div",{style:{textAlign:"center",padding:"28px"}},h("div",{style:{fontSize:"36px"}},"🎵"),h("p",{style:{color:"rgba(255,255,255,.4)",fontSize:"13px",marginTop:"8px"}},"Hör gut zu...")));
-    else if(game.phase==="songs")els.push(h("div",{style:{textAlign:"center",padding:"28px"}},h("div",{style:{fontSize:"36px"}},"🎧"),h("p",{style:{color:"rgba(255,255,255,.4)",fontSize:"13px",marginTop:"8px"}},"Songs werden abgespielt...")));
-
-    if(game.phase==="vote"||game.phase==="reveal"){
-      const btns=q.answers.map((a,i)=>{
-        const c=COLORS[i];const isMine=selected===i;const isCorrect=showResult&&q.correct===i;const isWrong=showResult&&q.correct!==i&&q.correct>=0;
-        return h("button",{class:"vote-btn",style:{border:`3px solid ${isCorrect?c.border:isMine?c.bg:"rgba(255,255,255,.08)"}`,background:isCorrect?c.light:isMine?c.bg+"22":"rgba(255,255,255,.04)",opacity:isWrong&&!isMine?.25:1,cursor:canVote?"pointer":"default"},onClick:()=>{if(canVote)doVote(i,qi)}},
-          h("div",{style:{width:"50px",height:"50px",borderRadius:"12px",display:"flex",alignItems:"center",justifyContent:"center",background:isMine||isCorrect?c.bg:c.bg+"33",fontSize:"24px",flexShrink:"0",boxShadow:isMine&&!showResult?`0 0 16px ${c.bg}44`:"none"}},isCorrect?"✓":isMine&&wasWrong?"✗":c.emoji),
-          h("div",null,h("div",{style:{color:"#fff",fontSize:"16px",fontWeight:"700"}},a.text),isMine&&!showResult?h("div",{style:{color:c.hex,fontSize:"11px",marginTop:"2px",fontWeight:"600"}},"Deine Wahl ✓"):null)
-        );
+// ─── PLAYER GAME ───
+function showPlayer(){
+  cl();let gm=null,my=null,sel=null,sub=false,lq=-1;
+  const d=()=>{
+    if(!gm)return R(h("div",{class:"center"},h("div",{style:{color:"rgba(255,255,255,.4)",fontSize:"14px",padding:"40px"}},"Verbinde...")));
+    const al=my?.alive!==false;
+    if(!al)return R(h("div",{class:"center"},h("div",{style:{maxWidth:"340px",padding:"40px",textAlign:"center"}},
+      h("div",{style:{fontSize:"56px",marginBottom:"8px"}},"😵"),
+      h("h2",{style:{color:"#ef4444",fontSize:"26px",fontWeight:"800",margin:"0 0 6px"}},"Du bist raus!"),
+      h("p",{style:{color:"rgba(255,255,255,.4)",fontSize:"13px"}},"Falsche Antwort bei Frage "+((my?.eliminatedAt||0)+1)+"."),
+      h("p",{style:{color:"rgba(255,255,255,.3)",fontSize:"13px",marginTop:"4px"}},"Viel Spass beim Zuschauen! 🍿")
+    )));
+    if(gm.phase==="lobby")return R(h("div",{class:"center"},h("div",{style:{padding:"40px",textAlign:"center"}},
+      h("div",{style:{fontSize:"44px",marginBottom:"4px"}},"✅"),
+      h("h2",{style:{fontSize:"20px",fontWeight:"700",margin:"0 0 4px"}},"Hey "+(my?.name||"")+"!"),
+      h("p",{style:{color:"rgba(255,255,255,.4)",fontSize:"13px"}},"Warte bis das Spiel startet...")
+    )));
+    const qi=gm.currentQ||0,q=QS[qi];
+    const cv=gm.phase==="vote"&&al&&!sub,sr=gm.phase==="reveal";
+    const ma=my?.answers?.[qi],wc=sr&&q.c>=0&&ma===q.c,ww=sr&&q.c>=0&&ma!==undefined&&ma!==q.c;
+    const qt=q.q.split("\n");
+    const els=[h("div",{style:{textAlign:"center",marginBottom:"10px"}},
+      h("span",{style:{color:"rgba(255,255,255,.35)",fontSize:"11px"}},"Frage "+(qi+1)+" / "+QS.length),
+      ...qt.map(t=>h("h3",{style:{fontSize:"17px",fontWeight:"700",margin:"6px 0 0",lineHeight:"1.3"}},t)))];
+    if(gm.phase==="question")els.push(h("div",{style:{textAlign:"center",padding:"28px"}},h("div",{style:{fontSize:"36px"}},"🎵"),h("p",{style:{color:"rgba(255,255,255,.4)",fontSize:"13px",marginTop:"8px"}},"Hör gut zu...")));
+    if(gm.phase==="songs")els.push(h("div",{style:{textAlign:"center",padding:"28px"}},h("div",{style:{fontSize:"36px"}},"🎧"),h("p",{style:{color:"rgba(255,255,255,.4)",fontSize:"13px",marginTop:"8px"}},"Songs werden abgespielt...")));
+    if(gm.phase==="vote"||sr){
+      const bs=q.a.map((a,i)=>{
+        const c=CL[i],im=sel===i,ic=sr&&q.c===i,iw=sr&&q.c!==i&&q.c>=0;
+        return h("button",{class:"vote-btn",style:{border:`3px solid ${ic?c.bd:im?c.bg:"rgba(255,255,255,.08)"}`,background:ic?c.lt:im?c.bg+"22":"rgba(255,255,255,.04)",opacity:iw&&!im?.25:1,cursor:cv?"pointer":"default"},onClick:()=>{if(cv)dv(i,qi)}},
+          h("div",{style:{width:"50px",height:"50px",borderRadius:"12px",display:"flex",alignItems:"center",justifyContent:"center",background:im||ic?c.bg:c.bg+"33",fontSize:"24px",flexShrink:"0",boxShadow:im&&!sr?`0 0 16px ${c.bg}44`:"none"}},ic?"✓":im&&ww?"✗":c.em),
+          h("div",null,h("div",{style:{color:"#fff",fontSize:"16px",fontWeight:"700"}},a.t),im&&!sr?h("div",{style:{color:c.hx,fontSize:"11px",marginTop:"2px",fontWeight:"600"}},"Deine Wahl ✓"):null));
       });
-      els.push(h("div",{style:{display:"flex",flexDirection:"column",gap:"9px",marginTop:"8px"}},...btns));
-      if(submitted&&game.phase==="vote")els.push(h("div",{style:{textAlign:"center",marginTop:"6px"}},h("div",{style:{color:COLORS[selected]?.hex,fontSize:"13px",fontWeight:"600"}},COLORS[selected]?.emoji+" "+COLORS[selected]?.name+" gewählt – warte auf Auflösung...")));
-      if(!submitted&&game.phase==="vote")els.push(h("div",{style:{textAlign:"center",marginTop:"6px"}},h("div",{style:{color:"#f59e0b",fontSize:"14px",fontWeight:"700"}},"⬆️ Wähle deine Farbe!")));
-      if(wasCorrect)els.push(h("div",{style:{textAlign:"center",marginTop:"8px"}},h("div",{style:{fontSize:"36px"}},"🎉"),h("div",{style:{color:"#22c55e",fontSize:"18px",fontWeight:"800",marginTop:"4px"}},"Richtig! Du bist weiter!")));
-      if(wasWrong)els.push(h("div",{style:{textAlign:"center",marginTop:"8px"}},h("div",{style:{fontSize:"36px"}},"😢"),h("div",{style:{color:"#ef4444",fontSize:"18px",fontWeight:"800",marginTop:"4px"}},"Leider falsch...")));
-      if(showResult&&myAns===undefined)els.push(h("div",{style:{textAlign:"center",marginTop:"8px",color:"rgba(255,255,255,.35)",fontSize:"13px"}},"Du hast nicht abgestimmt"));
+      els.push(h("div",{style:{display:"flex",flexDirection:"column",gap:"9px",marginTop:"8px"}},...bs));
+      if(sub&&gm.phase==="vote")els.push(h("div",{style:{textAlign:"center",marginTop:"6px"}},h("div",{style:{color:CL[sel]?.hx,fontSize:"13px",fontWeight:"600"}},CL[sel]?.em+" "+CL[sel]?.n+" gewählt – warte auf Auflösung...")));
+      if(!sub&&gm.phase==="vote")els.push(h("div",{style:{textAlign:"center",marginTop:"6px"}},h("div",{style:{color:"#f59e0b",fontSize:"14px",fontWeight:"700"}},"⬆️ Wähle deine Farbe!")));
+      if(wc)els.push(h("div",{style:{textAlign:"center",marginTop:"8px"}},h("div",{style:{fontSize:"36px"}},"🎉"),h("div",{style:{color:"#22c55e",fontSize:"18px",fontWeight:"800",marginTop:"4px"}},"Richtig! Du bist weiter!")));
+      if(ww)els.push(h("div",{style:{textAlign:"center",marginTop:"8px"}},h("div",{style:{fontSize:"36px"}},"😢"),h("div",{style:{color:"#ef4444",fontSize:"18px",fontWeight:"800",marginTop:"4px"}},"Leider falsch...")));
+      if(sr&&ma===undefined)els.push(h("div",{style:{textAlign:"center",marginTop:"8px",color:"rgba(255,255,255,.35)",fontSize:"13px"}},"Du hast nicht abgestimmt"));
     }
-    render(h("div",{style:{minHeight:"100vh",padding:"16px 14px"}},h("div",{style:{maxWidth:"400px",margin:"0 auto"}},...els)));
+    R(h("div",{style:{minHeight:"100vh",padding:"16px 14px"}},h("div",{style:{maxWidth:"400px",margin:"0 auto"}},...els)));
   };
-  const doVote=async(idx,qi)=>{selected=idx;submitted=true;await update(ref(db,`players/${playerId}/answers`),{[qi]:idx});draw();};
-  listen("game",v=>{if(!v)return;const qi=v.currentQ||0;if(qi!==lastQ){selected=null;submitted=false;lastQ=qi;}game=v;if(myData?.answers?.[qi]!==undefined){selected=myData.answers[qi];submitted=true;}draw();});
-  listen(`players/${playerId}`,v=>{myData=v;const qi=game?.currentQ||0;if(v?.answers?.[qi]!==undefined){selected=v.answers[qi];submitted=true;}draw();});
+  const dv=async(i,qi)=>{sel=i;sub=true;await update(ref(db,`players/${pid}/answers`),{[qi]:i});d()};
+  li("game",v=>{if(!v)return;const qi=v.currentQ||0;if(qi!==lq){sel=null;sub=false;lq=qi}gm=v;if(my?.answers?.[qi]!==undefined){sel=my.answers[qi];sub=true}d()});
+  li(`players/${pid}`,v=>{my=v;const qi=gm?.currentQ||0;if(v?.answers?.[qi]!==undefined){sel=v.answers[qi];sub=true}d()});
 }
 
-// ─── ADMIN: LOBBY ───
+// ─── ADMIN LOBBY ───
 function showLobby(){
-  clearListeners();stopSpotify();
-  let players={};
+  cl();let ps={};
   set(ref(db,"game"),{phase:"lobby",currentQ:0,startedAt:Date.now()});
   remove(ref(db,"players"));
-
-  const draw=()=>{
-    const names=Object.values(players||{});const total=names.length;
-    render(h("div",{class:"center"},
-      h("div",{style:{maxWidth:"600px",padding:"24px",textAlign:"center"}},
-        h("div",{style:{fontSize:"13px",color:"rgba(255,255,255,.4)",letterSpacing:"3px",textTransform:"uppercase",marginBottom:"4px"}},"🎂 Moderator-Ansicht"),
-        h("h1",{class:"title-grad",style:{fontSize:"36px",margin:"0 0 4px"}},"NADINE gegen "+(total||"?")),
-        h("p",{style:{color:"rgba(255,255,255,.5)",marginBottom:"20px",fontSize:"13px"}},"Spieler:innen joinen über den geteilten Link..."),
-        h("div",{class:"card",style:{marginBottom:"20px",minHeight:"80px"}},
-          h("div",{style:{color:"rgba(255,255,255,.4)",fontSize:"12px",marginBottom:"10px"}},total+" Spieler:innen dabei"),
-          h("div",{style:{display:"flex",flexWrap:"wrap",gap:"6px",justifyContent:"center"}},...names.map(p=>h("span",{class:"player-badge"},p.name)),total===0?h("span",{style:{color:"rgba(255,255,255,.25)",fontSize:"13px"}},"Warte auf Spieler:innen..."):null)
-        ),
-        h("button",{class:"btn-big",style:{background:total>0?"linear-gradient(135deg,#f59e0b,#ef4444)":"rgba(255,255,255,.1)",color:total>0?"#fff":"rgba(255,255,255,.3)",cursor:total>0?"pointer":"not-allowed"},onClick:()=>{if(total>0){showAdminGame(0,"question");}}},"🎬 SPIEL STARTEN"),
-        h("div",{style:{display:"flex",gap:"8px",justifyContent:"center",marginTop:"12px"}},h("button",{class:"btn-sm",onClick:showLobby},"🔄 Reset"),h("button",{class:"btn-sm",onClick:showStart},"🚪 Zurück"))
-      )
-    ));
+  const d=()=>{
+    const ns=Object.values(ps||{}),tt=ns.length;
+    R(h("div",{class:"center"},h("div",{style:{maxWidth:"600px",padding:"24px",textAlign:"center"}},
+      h("div",{style:{fontSize:"13px",color:"rgba(255,255,255,.4)",letterSpacing:"3px",textTransform:"uppercase",marginBottom:"4px"}},"🎂 Moderator-Ansicht"),
+      h("h1",{class:"title-grad",style:{fontSize:"36px",margin:"0 0 4px"}},"NADINE gegen "+(tt||"?")),
+      h("p",{style:{color:"rgba(255,255,255,.5)",marginBottom:"20px",fontSize:"13px"}},"Spieler:innen joinen über den geteilten Link..."),
+      h("div",{class:"card",style:{marginBottom:"20px",minHeight:"80px"}},
+        h("div",{style:{color:"rgba(255,255,255,.4)",fontSize:"12px",marginBottom:"10px"}},tt+" Spieler:innen dabei"),
+        h("div",{style:{display:"flex",flexWrap:"wrap",gap:"6px",justifyContent:"center"}},...ns.map(p=>h("span",{class:"player-badge"},p.name)),tt===0?h("span",{style:{color:"rgba(255,255,255,.25)",fontSize:"13px"}},"Warte auf Spieler:innen..."):null)
+      ),
+      h("button",{class:"btn-big",style:{background:tt>0?"linear-gradient(135deg,#f59e0b,#ef4444)":"rgba(255,255,255,.1)",color:tt>0?"#fff":"rgba(255,255,255,.3)",cursor:tt>0?"pointer":"not-allowed"},onClick:()=>{if(tt>0)showAdmin(0,"question")}},"🎬 SPIEL STARTEN"),
+      h("div",{style:{display:"flex",gap:"8px",justifyContent:"center",marginTop:"12px"}},h("button",{class:"btn-sm",onClick:showLobby},"🔄 Reset"),h("button",{class:"btn-sm",onClick:showStart},"🚪 Zurück"))
+    )));
   };
-  listen("players",v=>{players=v||{};draw();});draw();
+  li("players",v=>{ps=v||{};d()});d();
 }
 
-// ─── ADMIN: GAME ───
-function showAdminGame(qi,ph){
-  clearListeners();stopSpotify();
-  let players={},phase=ph,currentQ=qi;
+// ─── ADMIN GAME ───
+function showAdmin(qi,ph){
+  cl();let ps={},phase=ph,cq=qi;
+  const sy=async(p,q)=>{phase=p;cq=q??cq;await update(ref(db,"game"),{phase,currentQ:cq})};
 
-  const syncPhase=async(p,q)=>{phase=p;currentQ=q??currentQ;await update(ref(db,"game"),{phase,currentQ});};
-  const stat=(l,v,c)=>h("div",{style:{textAlign:"center"}},h("div",{class:"label"},l),h("div",{style:{color:c,fontSize:"18px",fontWeight:"800"}},v));
+  const d=()=>{
+    const q=QS[cq],ac=Object.values(ps||{}).filter(p=>p.alive),el=Object.values(ps||{}).filter(p=>!p.alive).length;
+    const vt=[0,0,0];Object.values(ps||{}).forEach(p=>{if(p.alive&&p.answers?.[cq]!==undefined)vt[p.answers[cq]]++});
+    const tv=vt.reduce((a,b)=>a+b,0),il=cq===QS.length-1,qt=q.q.split("\n");
 
-  const draw=()=>{
-    const q=QUESTIONS[currentQ];
-    const active=Object.values(players||{}).filter(p=>p.alive);
-    const eliminated=Object.values(players||{}).filter(p=>!p.alive).length;
-    const votes=[0,0,0];
-    Object.values(players||{}).forEach(p=>{if(p.alive&&p.answers?.[currentQ]!==undefined)votes[p.answers[currentQ]]++;});
-    const totalV=votes.reduce((a,b)=>a+b,0);
-    const isLast=currentQ===QUESTIONS.length-1;
-    const qText=q.question.split("\n");
-
-    // Spotify embeds
-    const songEls=[];
+    // Songs section
+    const se=[];
     if(phase==="songs"||phase==="vote"){
       if(q.type==="single"&&q.song){
-        songEls.push(h("div",{style:{marginBottom:"14px"}},spotifyEmbed(q.song),spotifyLink(q.song,"Song abspielen")));
-      } else if(q.type==="per-answer"){
-        q.answers.forEach((a,i)=>{
-          if(a.spotifyId)songEls.push(h("div",{style:{marginBottom:"10px",background:"rgba(255,255,255,.03)",borderRadius:"14px",padding:"10px",border:`1px solid ${COLORS[i].bg}33`}},
-            h("div",{style:{display:"flex",alignItems:"center",gap:"8px",marginBottom:"6px"}},h("span",{style:{fontSize:"18px"}},COLORS[i].emoji),h("span",{style:{color:"rgba(255,255,255,.6)",fontSize:"13px",fontWeight:"600"}},a.text)),
-            spotifyEmbed(a.spotifyId),
-            spotifyLink(a.spotifyId,a.text)
-          ));
-        });
+        se.push(h("div",{class:"embed-wrap"},emb(q.song),slink(q.song,"Song abspielen")));
+      }else if(q.type==="per-answer"){
+        q.a.forEach((a,i)=>{if(a.s)se.push(h("div",{class:"embed-wrap",style:{borderColor:CL[i].bg+"33"}},
+          h("div",{class:"embed-label"},h("span",{style:{fontSize:"18px"}},CL[i].em),h("span",{style:{color:"rgba(255,255,255,.6)",fontSize:"13px",fontWeight:"600"}},a.t)),
+          emb(a.s),slink(a.s,a.t)))});
       }
+      // reveal-song: no songs in these phases
+    }
+    // Show reveal song after answer is revealed
+    if(phase==="reveal"&&q.type==="reveal-song"&&q.revealSong){
+      se.push(h("div",{class:"embed-wrap",style:{borderColor:"#f59e0b33"}},
+        h("div",{class:"embed-label"},h("span",{style:{fontSize:"18px"}},"🎵"),h("span",{style:{color:"#f59e0b",fontSize:"13px",fontWeight:"600"}},"Und so tönt's:")),
+        emb(q.revealSong),slink(q.revealSong,"Song abspielen")));
     }
 
-    const ansCards=q.answers.map((a,i)=>{
-      const c=COLORS[i];const isCorrect=phase==="reveal"&&q.correct===i;const isWrong=phase==="reveal"&&q.correct!==i&&q.correct>=0;
-      const pct=totalV>0?Math.round(votes[i]/totalV*100):0;
-      return h("div",{class:"answer-card",style:{background:isCorrect?c.light:"rgba(255,255,255,.04)",border:`3px solid ${isCorrect?c.border:isWrong?"rgba(255,255,255,.03)":c.bg+"44"}`,opacity:isWrong?.25:1,transform:isCorrect?"scale(1.02)":"scale(1)"}},
-        h("div",{class:"color-badge",style:{background:isCorrect?c.bg:c.bg+"33",boxShadow:isCorrect?`0 0 20px ${c.bg}44`:"none"}},isCorrect?"✓":c.emoji),
-        h("div",{style:{flex:"1",minWidth:"0"}},h("div",{style:{color:isWrong?"rgba(255,255,255,.3)":"#fff",fontSize:"15px",fontWeight:"700"}},a.text)),
-        (phase==="vote"||phase==="reveal")?h("div",{style:{textAlign:"right",flexShrink:"0",minWidth:"40px"}},h("div",{style:{color:c.hex,fontSize:"17px",fontWeight:"800"}},votes[i]),h("div",{style:{color:"rgba(255,255,255,.25)",fontSize:"9px"}},pct+"%")):null
-      );
+    // Answer cards
+    const ac2=q.a.map((a,i)=>{
+      const c=CL[i],ic=phase==="reveal"&&q.c===i,iw=phase==="reveal"&&q.c!==i&&q.c>=0;
+      const pc=tv>0?Math.round(vt[i]/tv*100):0;
+      return h("div",{class:"answer-card",style:{background:ic?c.lt:"rgba(255,255,255,.04)",border:`3px solid ${ic?c.bd:iw?"rgba(255,255,255,.03)":c.bg+"44"}`,opacity:iw?.25:1,transform:ic?"scale(1.02)":"scale(1)"}},
+        h("div",{class:"color-badge",style:{background:ic?c.bg:c.bg+"33",boxShadow:ic?`0 0 20px ${c.bg}44`:"none"}},ic?"✓":c.em),
+        h("div",{style:{flex:"1",minWidth:"0"}},h("div",{style:{color:iw?"rgba(255,255,255,.3)":"#fff",fontSize:"15px",fontWeight:"700"}},a.t)),
+        (phase==="vote"||phase==="reveal")?h("div",{style:{textAlign:"right",flexShrink:"0",minWidth:"40px"}},h("div",{style:{color:c.hx,fontSize:"17px",fontWeight:"800"}},vt[i]),h("div",{style:{color:"rgba(255,255,255,.25)",fontSize:"9px"}},pc+"%")):null);
     });
 
-    const controls=[];
-    if(phase==="question")controls.push(h("button",{class:"btn-action",style:{background:"linear-gradient(135deg,#6366f1,#8b5cf6)"},onClick:()=>{syncPhase("songs");draw();}},"🎵 Songs abspielen"));
-    if(phase==="songs")controls.push(h("button",{class:"btn-action",style:{background:"linear-gradient(135deg,#f59e0b,#f97316)"},onClick:()=>{syncPhase("vote");draw();}},"🃏 ABSTIMMEN!"));
-    if(phase==="vote")controls.push(h("div",{style:{textAlign:"center"}},h("div",{style:{color:"rgba(255,255,255,.35)",fontSize:"12px",marginBottom:"6px"}},totalV+" / "+active.length+" Spieler:innen haben gewählt"),h("button",{class:"btn-action",style:{background:"linear-gradient(135deg,#ef4444,#ec4899)",boxShadow:"0 0 24px rgba(239,68,68,.25)"},onClick:doReveal},"🎯 ANTWORT AUFDECKEN")));
+    // Controls
+    const ct=[];
+    if(phase==="question"){
+      if(q.type==="none"||q.type==="reveal-song"){
+        // Skip songs phase, go straight to vote
+        ct.push(h("button",{class:"btn-action",style:{background:"linear-gradient(135deg,#f59e0b,#f97316)"},onClick:()=>{sy("vote");d()}},"🃏 ABSTIMMEN!"));
+      }else{
+        ct.push(h("button",{class:"btn-action",style:{background:"linear-gradient(135deg,#6366f1,#8b5cf6)"},onClick:()=>{sy("songs");d()}},"🎵 Songs abspielen"));
+      }
+    }
+    if(phase==="songs")ct.push(h("button",{class:"btn-action",style:{background:"linear-gradient(135deg,#f59e0b,#f97316)"},onClick:()=>{sy("vote");d()}},"🃏 ABSTIMMEN!"));
+    if(phase==="vote")ct.push(h("div",{style:{textAlign:"center"}},
+      h("div",{style:{color:"rgba(255,255,255,.35)",fontSize:"12px",marginBottom:"6px"}},tv+" / "+ac.length+" Spieler:innen haben gewählt"),
+      h("button",{class:"btn-action",style:{background:"linear-gradient(135deg,#ef4444,#ec4899)",boxShadow:"0 0 24px rgba(239,68,68,.25)"},onClick:rv},"🎯 ANTWORT AUFDECKEN")));
     if(phase==="reveal"){
-      const rev=[];
-      if(q.correct>=0)rev.push(h("div",{style:{fontSize:"15px",color:COLORS[q.correct].hex,fontWeight:"700",marginBottom:"6px"}},"✅ "+COLORS[q.correct].emoji+" "+COLORS[q.correct].name+" – "+q.answers[q.correct].text));
-      else rev.push(h("div",{style:{fontSize:"13px",color:"#f59e0b",marginBottom:"6px"}},"⚠️ Richtige Antwort nicht definiert – kein:e Spieler:in fliegt raus"));
-      if(!isLast)rev.push(h("button",{class:"btn-action",style:{background:"linear-gradient(135deg,#6366f1,#8b5cf6)"},onClick:()=>{stopSpotify();currentQ++;syncPhase("question",currentQ);draw();}},"Nächste Frage →"));
-      else rev.push(h("div",null,h("div",{style:{fontSize:"32px",marginBottom:"4px"}},"🎉🎂🥳"),h("div",{style:{color:"#f59e0b",fontSize:"18px",fontWeight:"800"}},active.length>0?active.length+" Spieler:innen haben überlebt!":"Nadine hat gewonnen!"),h("div",{style:{color:"rgba(255,255,255,.4)",fontSize:"13px",marginTop:"2px"}},"Happy Birthday Nadine! 🎵")));
-      controls.push(h("div",{style:{textAlign:"center"}},...rev));
+      const rv2=[];
+      if(q.c>=0)rv2.push(h("div",{style:{fontSize:"15px",color:CL[q.c].hx,fontWeight:"700",marginBottom:"6px"}},"✅ "+CL[q.c].em+" "+CL[q.c].n+" – "+q.a[q.c].t));
+      else rv2.push(h("div",{style:{fontSize:"13px",color:"#f59e0b",marginBottom:"6px"}},"⚠️ Richtige Antwort nicht definiert"));
+      if(!il)rv2.push(h("button",{class:"btn-action",style:{background:"linear-gradient(135deg,#6366f1,#8b5cf6)"},onClick:()=>{cq++;sy("question",cq);d()}},"Nächste Frage →"));
+      else rv2.push(h("div",null,h("div",{style:{fontSize:"32px",marginBottom:"4px"}},"🎉🎂🥳"),h("div",{style:{color:"#f59e0b",fontSize:"18px",fontWeight:"800"}},ac.length>0?ac.length+" Spieler:innen haben überlebt!":"Nadine hat gewonnen!"),h("div",{style:{color:"rgba(255,255,255,.4)",fontSize:"13px",marginTop:"2px"}},"Happy Birthday Nadine! 🎵")));
+      ct.push(h("div",{style:{textAlign:"center"}},...rv2));
     }
 
-    render(h("div",{style:{minHeight:"100vh",padding:"12px 16px"}},h("div",{class:"wrap"},
+    R(h("div",{style:{minHeight:"100vh",padding:"12px 16px"}},h("div",{class:"wrap"},
+      // Header
       h("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"10px"}},
-        h("div",{style:{display:"flex",alignItems:"center",gap:"14px"}},stat("Frage",(currentQ+1)+"/"+QUESTIONS.length,"#fff"),h("div",{style:{width:"1px",height:"24px",background:"rgba(255,255,255,.1)"}}),stat("Aktiv",active.length,"#f59e0b"),h("div",{style:{width:"1px",height:"24px",background:"rgba(255,255,255,.1)"}}),stat("Raus",eliminated,"#ef4444")),
-        h("span",{style:{fontSize:"10px",color:"rgba(255,255,255,.25)",letterSpacing:"2px",textTransform:"uppercase"}},"Moderator")
-      ),
-      h("div",{style:{display:"flex",gap:"3px",justifyContent:"center",marginBottom:"14px",flexWrap:"wrap"}},...QUESTIONS.map((_,i)=>h("div",{class:"dot",style:{background:i===currentQ?"#f59e0b":i<currentQ?"rgba(245,158,11,.3)":"rgba(255,255,255,.08)"}}))),
-      h("div",{class:"card",style:{padding:"18px 22px",marginBottom:"14px",textAlign:"center"}},...qText.map(t=>h("h2",{style:{fontSize:"21px",fontWeight:"700",lineHeight:"1.4",marginBottom:"4px"}},t))),
-      ...songEls,
-      h("div",{style:{display:"flex",flexDirection:"column",gap:"7px",marginBottom:"14px"}},...ansCards),
-      h("div",{style:{display:"flex",flexDirection:"column",alignItems:"center",gap:"8px"}},...controls),
+        h("div",{style:{display:"flex",alignItems:"center",gap:"14px"}},stat("Frage",(cq+1)+"/"+QS.length,"#fff"),h("div",{style:{width:"1px",height:"24px",background:"rgba(255,255,255,.1)"}}),stat("Aktiv",ac.length,"#f59e0b"),h("div",{style:{width:"1px",height:"24px",background:"rgba(255,255,255,.1)"}}),stat("Raus",el,"#ef4444")),
+        h("span",{style:{fontSize:"10px",color:"rgba(255,255,255,.25)",letterSpacing:"2px",textTransform:"uppercase"}},"Moderator")),
+      // Dots
+      h("div",{style:{display:"flex",gap:"3px",justifyContent:"center",marginBottom:"14px",flexWrap:"wrap"}},...QS.map((_,i)=>h("div",{class:"dot",style:{background:i===cq?"#f59e0b":i<cq?"rgba(245,158,11,.3)":"rgba(255,255,255,.08)"}}))),
+      // Question
+      h("div",{class:"card",style:{padding:"18px 22px",marginBottom:"14px",textAlign:"center"}},...qt.map(t=>h("h2",{style:{fontSize:"21px",fontWeight:"700",lineHeight:"1.4",marginBottom:"4px"}},t))),
+      // Songs
+      ...se,
+      // Answers
+      h("div",{style:{display:"flex",flexDirection:"column",gap:"7px",marginBottom:"14px"}},...ac2),
+      // Controls
+      h("div",{style:{display:"flex",flexDirection:"column",alignItems:"center",gap:"8px"}},...ct),
+      // Nav
       h("div",{style:{display:"flex",justifyContent:"space-between",marginTop:"14px"}},
-        h("button",{class:"btn-sm",style:{opacity:currentQ===0?.3:.7},onClick:()=>{if(currentQ>0){stopSpotify();currentQ--;syncPhase("question",currentQ);draw();}}},"← Zurück"),
-        h("button",{class:"btn-sm",onClick:()=>{stopSpotify();showLobby();}},"🏠 Lobby"),
-        h("button",{class:"btn-sm",style:{opacity:isLast?.3:.7},onClick:()=>{if(!isLast){stopSpotify();currentQ++;syncPhase("question",currentQ);draw();}}},"Überspringen →")
-      )
+        h("button",{class:"btn-sm",style:{opacity:cq===0?.3:.7},onClick:()=>{if(cq>0){cq--;sy("question",cq);d()}}},"← Zurück"),
+        h("button",{class:"btn-sm",onClick:showLobby},"🏠 Lobby"),
+        h("button",{class:"btn-sm",style:{opacity:il?.3:.7},onClick:()=>{if(!il){cq++;sy("question",cq);d()}}},"Überspringen →"))
     )));
   };
 
-  const doReveal=async()=>{
-    const q=QUESTIONS[currentQ];
-    if(q.correct>=0){
-      const snap=await get(ref(db,"players"));const all=snap.val()||{};const updates={};
-      for(const[id,pl]of Object.entries(all)){
-        if(!pl.alive)continue;const ans=pl.answers?.[currentQ];
-        if(ans!==undefined&&ans!==q.correct){updates[`players/${id}/alive`]=false;updates[`players/${id}/eliminatedAt`]=currentQ;}
-      }
-      if(Object.keys(updates).length>0)await update(ref(db),updates);
+  const rv=async()=>{
+    const q=QS[cq];
+    if(q.c>=0){
+      const sn=await get(ref(db,"players"));const al=sn.val()||{};const up={};
+      for(const[id,pl]of Object.entries(al)){if(!pl.alive)continue;const an=pl.answers?.[cq];if(an!==undefined&&an!==q.c){up[`players/${id}/alive`]=false;up[`players/${id}/eliminatedAt`]=cq}}
+      if(Object.keys(up).length>0)await update(ref(db),up);
     }
-    syncPhase("reveal");draw();
+    sy("reveal");d();
   };
 
-  listen("players",v=>{players=v||{};draw();});
-  syncPhase(phase,currentQ);draw();
+  li("players",v=>{ps=v||{};d()});sy(phase,cq);d();
 }
 
 showStart();
