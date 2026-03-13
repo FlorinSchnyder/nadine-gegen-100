@@ -73,7 +73,7 @@ const QS=[
    a:[{t:"Modern Love"},{t:"Old Love"},{t:"New Love"}],c:0},
   {q:"Ohne wellches Lied hat Nadine in der WG am Wochenende das Haus nicht verlassen?",type:"per-answer",
    a:[{t:"Let the dogs out",s:"1H5tvpoApNDxvxDexoaAUo"},{t:"Ella Ella",s:"3XM3TD08DSAzl84yasWP1x"},{t:"I'm sexy and I know it",s:"70Vdd1gx5tn84jkAU31ASv"}],c:1},
-  {q:"Nadine ist/war Teil von welcher Fangruppe?\nIn welcher Phase hat die Vorbereitung fürs Konzert nicht nur Songs sondern auch Obenohnebilder beinhaltet?",type:"none",
+  {q:"Nadine ist/war Teil von welcher Fangruppe?\nIn welcher Phase hat die Vorbereitung fürs Konzert nicht nur Songs sondern auch Obenohnebilder beinhaltet?",type:"single",song:"50kpGaPAhYJ3sGmk6vplg0",
    a:[{t:"Beliebers"},{t:"Swifties"},{t:"Rihanna Navy"}],c:0},
   {q:"Wele/Weli Künstler:in wett d Nadine am liebste grad jetzt id Schwiz hole?",type:"none",
    a:[{t:"Adele"},{t:"Edwin Rosen"},{t:"Sharon van Etten"}],c:2},
@@ -92,7 +92,7 @@ let role=null,pid="p_"+Math.random().toString(36).slice(2,8);
 let unsubs=[];
 function cl(){unsubs.forEach(u=>u());unsubs=[];}
 function li(p,cb){const u=onValue(ref(db,p),s=>cb(s.val()));unsubs.push(u);}
-function h(tag,at,...ch){const el=document.createElement(tag);if(at)Object.entries(at).forEach(([k,v])=>{if(k==="style"&&typeof v==="object")Object.assign(el.style,v);else if(k.startsWith("on"))el.addEventListener(k.slice(2).toLowerCase(),v);else el.setAttribute(k,v)});ch.flat().forEach(c=>{if(c!=null)el.append(typeof c==="string"||typeof c==="number"?document.createTextNode(c):c)});return el;}
+function h(tag,at,...ch){const el=document.createElement(tag);if(at)Object.entries(at).forEach(([k,v])=>{if(v==null)return;if(k==="style"&&typeof v==="object")Object.assign(el.style,v);else if(k.startsWith("on")&&typeof v==="function")el.addEventListener(k.slice(2).toLowerCase(),v);else if(k.startsWith("on")&&typeof v==="string")el.setAttribute(k,v);else el.setAttribute(k,v)});ch.flat().forEach(c=>{if(c!=null)el.append(typeof c==="string"||typeof c==="number"?document.createTextNode(c):c)});return el;}
 function R(el){app.innerHTML="";app.appendChild(el);}
 function emb(id){return h("iframe",{src:`https://open.spotify.com/embed/track/${id}?utm_source=generator&theme=0`,width:"100%",height:"152",frameBorder:"0",allow:"autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture",loading:"lazy",style:{borderRadius:"12px",border:"none",maxWidth:"100%"}})}
 function slink(id,lb){return h("a",{href:`https://open.spotify.com/track/${id}`,target:"_blank",class:"spotify-fallback"},"🔗 In Spotify öffnen")}
@@ -123,7 +123,7 @@ function showStart(){
   cl();let sp=false,pe=false;
   const d=()=>{
     R(h("div",{class:"center"},h("div",{style:{maxWidth:"500px",padding:"24px"}},
-      h("img",{src:HERO,class:"hero-img",alt:"Nadine gegen 100",onerror:"this.style.display='none'"}),
+      h("img",{src:HERO,class:"hero-img",alt:"Nadine gegen 100",onError:function(){this.style.display='none'}}),
       h("button",{class:"btn-big",style:{background:"linear-gradient(135deg,#7c3aed,#a855f7)",marginBottom:"10px"},onClick:()=>{role="player";showJoin()}},"📱 Mitspielen!"),
       sp?h("div",{style:{display:"flex",gap:"8px",justifyContent:"center",alignItems:"center",marginTop:"24px"}},
         Object.assign(h("input",{type:"password",placeholder:"PIN",maxLength:"6",style:{width:"100px",padding:"8px 12px",background:"rgba(192,132,252,.1)",color:"#fff",border:`1px solid ${pe?"#ef4444":"rgba(192,132,252,.25)"}`,borderRadius:"8px",fontSize:"16px",textAlign:"center",outline:"none"}}),{onkeydown:e=>{if(e.key==="Enter")ck(e.target.value)}}),
@@ -141,7 +141,7 @@ function showJoin(){
   cl();let nm="";
   const d=()=>{
     R(h("div",{class:"center"},h("div",{style:{maxWidth:"360px",padding:"32px"}},
-      h("img",{src:HERO,class:"hero-img",style:{maxWidth:"280px"},alt:"Nadine gegen 100",onerror:"this.style.display='none'"}),
+      h("img",{src:HERO,class:"hero-img",style:{maxWidth:"280px"},alt:"Nadine gegen 100",onError:function(){this.style.display='none'}}),
       h("p",{style:{color:"rgba(192,132,252,.6)",marginBottom:"16px",fontSize:"13px"}},"Gib deinen Namen ein!"),
       Object.assign(h("input",{placeholder:"Dein Name",maxLength:"20",style:{width:"100%",padding:"14px 16px",background:"rgba(192,132,252,.08)",color:"#fff",border:"1px solid rgba(192,132,252,.2)",borderRadius:"12px",fontSize:"18px",textAlign:"center",fontWeight:"600",outline:"none",marginBottom:"10px"}}),{oninput:e=>{nm=e.target.value},onkeydown:e=>{if(e.key==="Enter")jo()}}),
       h("button",{class:"btn-big",style:{background:"linear-gradient(135deg,#7c3aed,#a855f7)"},onClick:jo},"Mitspielen! 🎉"),
@@ -220,7 +220,7 @@ function showLobby(){
   const d=()=>{
     const ns=Object.values(ps||{}),tt=ns.length;
     R(h("div",{class:"center"},h("div",{style:{maxWidth:"600px",padding:"24px",textAlign:"center"}},
-      h("img",{src:HERO,class:"hero-img",style:{maxWidth:"400px"},alt:"Nadine gegen 100",onerror:"this.style.display='none'"}),
+      h("img",{src:HERO,class:"hero-img",style:{maxWidth:"400px"},alt:"Nadine gegen 100",onError:function(){this.style.display='none'}}),
       h("div",{class:"card",style:{marginBottom:"20px",minHeight:"80px"}},
         h("div",{style:{color:"rgba(192,132,252,.5)",fontSize:"12px",marginBottom:"10px"}},tt+" Spieler:innen dabei"),
         h("div",{style:{display:"flex",flexWrap:"wrap",gap:"6px",justifyContent:"center"}},...ns.map(p=>h("span",{class:"player-badge"},p.name)),tt===0?h("span",{style:{color:"rgba(192,132,252,.3)",fontSize:"13px"}},"Warte auf Spieler:innen..."):null)
