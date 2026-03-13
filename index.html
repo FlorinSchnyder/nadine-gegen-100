@@ -186,11 +186,38 @@ function showPlayer(){
     const cv=gm.phase==="vote"&&al&&!sub,sr=gm.phase==="reveal";
     const ma=my?.answers?.[qi],wc=sr&&q.c>=0&&ma===q.c,ww=sr&&q.c>=0&&ma!==undefined&&ma!==q.c;
     const qt=q.q.split("\n");
-    const els=[h("div",{style:{textAlign:"center",marginBottom:"10px"}},
+
+    // Count active and eliminated players
+    let pSnap=null;
+    const els=[];
+
+    // Header with player counts
+    els.push(h("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"10px"}},
       h("span",{style:{color:"rgba(192,132,252,.45)",fontSize:"11px"}},"Frage "+(qi+1)+" / "+QS.length),
-      ...qt.map(t=>h("h3",{style:{fontSize:"17px",fontWeight:"700",margin:"6px 0 0",lineHeight:"1.3"}},t)))];
-    if(gm.phase==="question")els.push(h("div",{style:{textAlign:"center",padding:"28px"}},h("div",{style:{fontSize:"36px"}},"🎵"),h("p",{style:{color:"rgba(192,132,252,.45)",fontSize:"13px",marginTop:"8px"}},"Hör gut zu...")));
-    if(gm.phase==="songs")els.push(h("div",{style:{textAlign:"center",padding:"28px"}},h("div",{style:{fontSize:"36px"}},"🎧"),h("p",{style:{color:"rgba(192,132,252,.45)",fontSize:"13px",marginTop:"8px"}},"Songs werden abgespielt...")));
+      h("div",{style:{display:"flex",gap:"12px",alignItems:"center"}},
+        h("span",{style:{color:"#22d3ee",fontSize:"12px",fontWeight:"700"}},"✅ "+(gm.activePlayers||"?")),
+        h("span",{style:{color:"#ef4444",fontSize:"12px",fontWeight:"700"}},"❌ "+(gm.eliminatedPlayers||"0"))
+      )
+    ));
+
+    // Question text - always visible
+    els.push(h("div",{style:{textAlign:"center",marginBottom:"10px"}},...qt.map(t=>h("h3",{style:{fontSize:"17px",fontWeight:"700",margin:"4px 0",lineHeight:"1.3"}},t))));
+
+    // Answer options - always visible
+    if(gm.phase==="question"||gm.phase==="songs"){
+      // Show answers but not clickable yet
+      const bs=q.a.map((a,i)=>{
+        const c=CL[i];
+        return h("div",{class:"vote-btn",style:{border:"3px solid rgba(192,132,252,.1)",background:"rgba(192,132,252,.04)",cursor:"default"}},
+          h("div",{style:{width:"50px",height:"50px",borderRadius:"12px",display:"flex",alignItems:"center",justifyContent:"center",background:c.bg+"33",fontSize:"24px",flexShrink:"0"}},c.em),
+          h("div",null,h("div",{style:{color:"#fff",fontSize:"16px",fontWeight:"700"}},a.t)));
+      });
+      els.push(h("div",{style:{display:"flex",flexDirection:"column",gap:"9px",marginTop:"8px"}},...bs));
+
+      if(gm.phase==="question")els.push(h("div",{style:{textAlign:"center",marginTop:"12px",padding:"16px"}},h("div",{style:{fontSize:"28px"}},"🎵"),h("p",{style:{color:"rgba(192,132,252,.45)",fontSize:"13px",marginTop:"6px"}},"Hör gut zu...")));
+      if(gm.phase==="songs")els.push(h("div",{style:{textAlign:"center",marginTop:"12px",padding:"16px"}},h("div",{style:{fontSize:"28px"}},"🎧"),h("p",{style:{color:"rgba(192,132,252,.45)",fontSize:"13px",marginTop:"6px"}},"Songs werden abgespielt...")));
+    }
+
     if(gm.phase==="vote"||sr){
       const bs=q.a.map((a,i)=>{
         const c=CL[i],im=sel===i,ic=sr&&q.c===i,iw=sr&&q.c!==i&&q.c>=0;
@@ -236,7 +263,10 @@ function showLobby(){
 // ─── ADMIN GAME ───
 function showAdmin(qi,ph){
   cl();let ps={},phase=ph,cq=qi;
-  const sy=async(p,q)=>{phase=p;cq=q??cq;await update(ref(db,"game"),{phase,currentQ:cq})};
+  const sy=async(p,q)=>{phase=p;cq=q??cq;
+    const ac=Object.values(ps||{}).filter(p=>p.alive).length;
+    const el=Object.values(ps||{}).filter(p=>!p.alive).length;
+    await update(ref(db,"game"),{phase,currentQ:cq,activePlayers:ac,eliminatedPlayers:el});};
 
   const d=()=>{
     const q=QS[cq],ac=Object.values(ps||{}).filter(p=>p.alive),el=Object.values(ps||{}).filter(p=>!p.alive).length;
@@ -303,7 +333,11 @@ function showAdmin(qi,ph){
       for(const[id,pl]of Object.entries(al)){if(!pl.alive)continue;const an=pl.answers?.[cq];if(an!==undefined&&an!==q.c){up[`players/${id}/alive`]=false;up[`players/${id}/eliminatedAt`]=cq}}
       if(Object.keys(up).length>0)await update(ref(db),up);
     }
-    sy("reveal");d();
+    phase="reveal";
+    const acNow=Object.values((await get(ref(db,"players"))).val()||{}).filter(p=>p.alive).length;
+    const elNow=Object.values((await get(ref(db,"players"))).val()||{}).filter(p=>!p.alive).length;
+    await update(ref(db,"game"),{phase:"reveal",currentQ:cq,activePlayers:acNow,eliminatedPlayers:elNow});
+    d();
   };
 
   li("players",v=>{ps=v||{};d()});sy(phase,cq);d();
