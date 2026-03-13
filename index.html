@@ -226,6 +226,7 @@ function showLobby(){
         h("div",{style:{display:"flex",flexWrap:"wrap",gap:"6px",justifyContent:"center"}},...ns.map(p=>h("span",{class:"player-badge"},p.name)),tt===0?h("span",{style:{color:"rgba(192,132,252,.3)",fontSize:"13px"}},"Warte auf Spieler:innen..."):null)
       ),
       h("button",{class:"btn-big",style:{background:tt>0?"linear-gradient(135deg,#7c3aed,#a855f7)":"rgba(192,132,252,.1)",color:tt>0?"#fff":"rgba(192,132,252,.3)",cursor:tt>0?"pointer":"not-allowed"},onClick:()=>{if(tt>0)showAdmin(0,"question")}},"🎬 SPIEL STARTEN"),
+      jingleBar(),
       h("div",{style:{display:"flex",gap:"8px",justifyContent:"center",marginTop:"12px"}},h("button",{class:"btn-sm",onClick:showLobby},"🔄 Reset"),h("button",{class:"btn-sm",onClick:showStart},"🚪 Zurück"))
     )));
   };
