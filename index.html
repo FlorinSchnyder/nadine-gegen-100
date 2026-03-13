@@ -98,6 +98,26 @@ function emb(id){return h("iframe",{src:`https://open.spotify.com/embed/track/${
 function slink(id,lb){return h("a",{href:`https://open.spotify.com/track/${id}`,target:"_blank",class:"spotify-fallback"},"🔗 In Spotify öffnen")}
 function stat(l,v,c){return h("div",{style:{textAlign:"center"}},h("div",{class:"label"},l),h("div",{style:{color:c,fontSize:"18px",fontWeight:"800"}},v));}
 
+const JINGLES=[
+  {label:"Nach Auflösung",url:"https://files.catbox.moe/j4ev4p.mp3"},
+  {label:"Während Aufzählung",url:"https://files.catbox.moe/nusp5u.mp3"},
+  {label:"Aufmerksamkeit",url:"https://files.catbox.moe/t9w17z.mp3"},
+  {label:"Quizstart",url:"https://files.catbox.moe/qh4w6k.mp3"},
+];
+let curJingle=null;
+function playJingle(url){
+  if(curJingle){curJingle.pause();curJingle=null;}
+  const a=new Audio(url);curJingle=a;a.play().catch(()=>{});
+  a.onended=()=>{curJingle=null;};
+}
+function stopJingle(){if(curJingle){curJingle.pause();curJingle=null;}}
+function jingleBar(){
+  return h("div",{style:{display:"flex",gap:"6px",flexWrap:"wrap",justifyContent:"center",marginBottom:"12px",padding:"8px",background:"rgba(192,132,252,.06)",borderRadius:"12px",border:"1px solid rgba(192,132,252,.1)"}},
+    ...JINGLES.map(j=>h("button",{style:{padding:"6px 12px",background:"rgba(192,132,252,.12)",color:"#e9d5ff",border:"1px solid rgba(192,132,252,.2)",borderRadius:"8px",fontSize:"11px",fontWeight:"600",cursor:"pointer"},onClick:()=>playJingle(j.url)},"🔊 "+j.label)),
+    h("button",{style:{padding:"6px 10px",background:"rgba(239,68,68,.12)",color:"#fca5a5",border:"1px solid rgba(239,68,68,.2)",borderRadius:"8px",fontSize:"11px",fontWeight:"600",cursor:"pointer"},onClick:stopJingle},"⏹ Stop")
+  );
+}
+
 // ─── START ───
 function showStart(){
   cl();let sp=false,pe=false;
@@ -263,6 +283,7 @@ function showAdmin(qi,ph){
         h("div",{style:{display:"flex",alignItems:"center",gap:"14px"}},stat("Frage",(cq+1)+"/"+QS.length,"#c084fc"),h("div",{style:{width:"1px",height:"24px",background:"rgba(192,132,252,.15)"}}),stat("Aktiv",ac.length,"#22d3ee"),h("div",{style:{width:"1px",height:"24px",background:"rgba(192,132,252,.15)"}}),stat("Raus",el,"#ef4444")),
         h("span",{style:{fontSize:"10px",color:"rgba(192,132,252,.3)",letterSpacing:"2px",textTransform:"uppercase"}},"Moderator")),
       h("div",{style:{display:"flex",gap:"3px",justifyContent:"center",marginBottom:"14px",flexWrap:"wrap"}},...QS.map((_,i)=>h("div",{class:"dot",style:{background:i===cq?"#a855f7":i<cq?"rgba(168,85,247,.3)":"rgba(192,132,252,.1)"}}))),
+      jingleBar(),
       h("div",{class:"card",style:{padding:"18px 22px",marginBottom:"14px",textAlign:"center"}},...qt.map(t=>h("h2",{style:{fontSize:"21px",fontWeight:"700",lineHeight:"1.4",marginBottom:"4px"}},t))),
       ...se,
       h("div",{style:{display:"flex",flexDirection:"column",gap:"7px",marginBottom:"14px"}},...ac2),
