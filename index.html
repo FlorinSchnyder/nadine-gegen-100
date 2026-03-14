@@ -330,7 +330,8 @@ function showAdmin(qi,ph){
     const q=QS[cq];
     if(q.c>=0){
       const sn=await get(ref(db,"players"));const al=sn.val()||{};const up={};
-      for(const[id,pl]of Object.entries(al)){if(!pl.alive)continue;const an=pl.answers?.[cq];if(an!==undefined&&an!==q.c){up[`players/${id}/alive`]=false;up[`players/${id}/eliminatedAt`]=cq}}
+      for(const[id,pl]of Object.entries(al)){if(!pl.alive)continue;const an=pl.answers?.[cq];
+        if(an===undefined||an===null||an!==q.c){up[`players/${id}/alive`]=false;up[`players/${id}/eliminatedAt`]=cq}}
       if(Object.keys(up).length>0)await update(ref(db),up);
     }
     phase="reveal";
